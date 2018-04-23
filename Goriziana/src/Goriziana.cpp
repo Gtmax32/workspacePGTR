@@ -114,6 +114,8 @@ glm::mat4 model(1.0f);
 glm::mat3 normal(1.0f);
 
 int main(){
+	std::cout << "Ciao!" << std::endl;
+
 	//INIZIALIZZO GLFW
 
 	if (! glfwInit()){
