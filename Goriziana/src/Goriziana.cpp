@@ -41,7 +41,7 @@
 const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 9.0f, 15.0f));
+Camera camera(glm::vec3(0.0f, 20.0f, 0.0f));
 
 // Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float)SCR_WIDTH / 2.0f;
@@ -113,10 +113,7 @@ glm::mat4 view(1.0f);
 glm::mat4 model(1.0f);
 glm::mat3 normal(1.0f);
 
-int main(){
-	std::cout << "Ciao!" << std::endl;
-
-	//INIZIALIZZO GLFW
+int main(){//INIZIALIZZO GLFW
 
 	if (! glfwInit()){
 		std::cout << "Errore nell'inizializzazione di GLFW!\n" << std::endl;
@@ -146,8 +143,8 @@ int main(){
 
 	glfwSetFramebufferSizeCallback(window,framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetScrollCallback(window, scroll_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
 	// GLAD cerca di caricare il contesto impostato da GLFW
 	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
@@ -290,23 +287,26 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
-	if(firstMouse){
-		lastX = xpos;
-		lastY = ypos;
-
-		firstMouse = false;
-	}
+//	if(firstMouse){
+//		lastX = xpos;
+//		lastY = ypos;
+//
+//		firstMouse = false;
+//	}
+//
+//	mouseX = xpos;
+//	mouseY = ypos;
+//
+//	GLfloat xOffset = xpos - lastX;
+//	GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
+//
+//	lastX = xpos;
+//	lastY = ypos;
+//
+//	camera.ProcessMouseMovement(xOffset, yOffset);
 
 	mouseX = xpos;
 	mouseY = ypos;
-
-	GLfloat xOffset = xpos - lastX;
-	GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
-
-	lastX = xpos;
-	lastY = ypos;
-
-	camera.ProcessMouseMovement(xOffset, yOffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
@@ -316,6 +316,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 void throw_ball(btRigidBody* ball){
 	//std::cout << "Space pressed..." << std::endl;
 	GLfloat shootInitialSpeed = 1.0f;
+
+	GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
+			y = -(mouseY / SCR_HEIGHT) * 2 + 1;
 
 	GLfloat matrix[16];
 
@@ -331,12 +334,15 @@ void throw_ball(btRigidBody* ball){
 
 	ballPos = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
 
-	glm::vec3 mousePos = glm::vec3(mouseX, mouseY, 1.0f);
+	glm::vec3 mousePos = glm::vec3(x, origin.getY(), y);
 
-	glm::vec3 direction = glm::normalize(mousePos - ballPos) * shootInitialSpeed;
+	glm::vec3 direction = glm::normalize(ballPos - mousePos) * shootInitialSpeed;
+	//glm::vec3 direction = glm::normalize(mousePos - ballPos) * shootInitialSpeed;
 
-	impulse = btVector3(direction.x, direction.y, direction.z);
+	impulse = btVector3(direction.x, 0, direction.z);
 	ball->applyCentralImpulse(impulse);
+
+	std::cout << "\nX: " << x << " - Y: " << y << "\nBall X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << std::endl;
 }
 
 // Carico immagine da disco e creo texture OpengGL
@@ -418,8 +424,6 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	//model = glm::translate(model, poolBallPos[0]);
 	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::make_mat4(matrix) * glm::scale(model, sphereSize);
-	//model = glm::make_mat4(matrix) * model;
-
 	normal = glm::inverseTranspose(glm::mat3(view*model));
 
 	shaderNT.setMat4("modelMatrix", model);
@@ -510,7 +514,7 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, M
 
 	model = glm::translate(model, glm::vec3(0.0f, 0.1f, -0.15f));
 	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+	model = glm::scale(model, glm::vec3(25.0f, 25.0f, 25.0f));
 	normal = glm::inverseTranspose(glm::mat3(view*model));
 
 	shaderT.setMat4("modelMatrix", model);
@@ -548,7 +552,7 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, M
 	//model = glm::translate(model, poolPlanePos);
 	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	model = glm::scale(model, glm::vec3(5.0f, 1.0f, 5.0f));
+	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 	normal = glm::inverseTranspose(glm::mat3(view*model));
 
 	shaderT.setMat4("modelMatrix", model);//model
