@@ -213,6 +213,7 @@ int main(){//INIZIALIZZO GLFW
 	glm::vec3 bodyBallRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	bodyBallWhite = poolSimulation.createRigidBody(1, poolBallPos[0], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
+
 	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
 	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
 
@@ -315,7 +316,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 
 void throw_ball(btRigidBody* ball){
 	//std::cout << "Space pressed..." << std::endl;
-	GLfloat shootInitialSpeed = 1.0f;
+	glm::mat4 worldToScreen = glm::inverse(projection * view);
+
+	GLfloat shootInitialSpeed = 2.0f;
 
 	GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
 			y = -(mouseY / SCR_HEIGHT) * 2 + 1;
@@ -325,24 +328,29 @@ void throw_ball(btRigidBody* ball){
 	btVector3 impulse, origin;
 	btTransform transform;
 
-	glm::vec3 ballPos;
+	glm::vec4 ballPos;
 
 	ball->getMotionState()->getWorldTransform(transform);
 	transform.getOpenGLMatrix(matrix);
 
 	origin = transform.getOrigin();
 
-	ballPos = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
+	ballPos = glm::vec4(origin.getX(), origin.getY(), origin.getZ(), 1.0f);
 
-	glm::vec3 mousePos = glm::vec3(x, origin.getY(), y);
+	glm::vec4 mousePos = glm::vec4(x, y, 1.0f, 1.0f);
 
-	glm::vec3 direction = glm::normalize(ballPos - mousePos) * shootInitialSpeed;
+	glm::vec4 direction = glm::normalize(worldToScreen * mousePos) * shootInitialSpeed;
 	//glm::vec3 direction = glm::normalize(mousePos - ballPos) * shootInitialSpeed;
 
 	impulse = btVector3(direction.x, 0, direction.z);
+
+	std::cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << std::endl;
+
 	ball->applyCentralImpulse(impulse);
 
-	std::cout << "\nX: " << x << " - Y: " << y << "\nBall X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << std::endl;
+	//ball->setLinearFactor(btVector3(1, 0, 1));
+
+	//std::cout << "\nX: " << x << " - Y: " << y << "\nBall X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << std::endl;
 }
 
 // Carico immagine da disco e creo texture OpengGL

@@ -1,4 +1,9 @@
 /.metadata/
 Goriziana/Debug/
-Goriziana/include/
+Goriziana/include/assimp
+Goriziana/include/bullet
+Goriziana/include/glad
+Goriziana/include/glfw
+Goriziana/include/glm
+Goriziana/include/stb_image
 Goriziana/libs/
