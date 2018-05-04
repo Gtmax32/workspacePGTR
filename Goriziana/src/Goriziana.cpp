@@ -43,7 +43,8 @@ using namespace std;
 const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 20.0f, 0.0f));
+//Camera camera(glm::vec3(0.0f, 20.0f, 0.0f));
+Camera camera(-7.0f, 8.0f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 
 // Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float)SCR_WIDTH / 2.0f;
@@ -85,9 +86,9 @@ glm::vec3 sphereSize = glm::vec3(0.5f, 0.5f, 0.5f);
 
 //Posizione delle palle del gioco
 glm::vec3 poolBallPos[] = {
-		glm::vec3(-3.0f, 14.0f, 0.0f), // palla bianca
-		glm::vec3(0.0f, 14.0f, 0.0f), // palla rossa
-		glm::vec3(3.0f, 14.0f, 0.0f) // palla gialla
+		glm::vec3(-5.5f, 14.0f, -2.2f), // palla bianca
+		glm::vec3(5.5f, 14.0f, 0.0f), // palla rossa
+		glm::vec3(-5.5f, 14.0f, 2.2f) // palla gialla
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -95,6 +96,7 @@ glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
 // Registra gli eventi che modificano le dimensioni della finestra
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 
@@ -143,14 +145,15 @@ int main(){//INIZIALIZZO GLFW
 
 	glfwMakeContextCurrent(window);
 
-	//SETTO LE FUNZIONI DI CALLBACK CHE SI OCCUPA DI GESTIRE LE INTERAZIONI DELL'UTENTE
+	//SETTO LE FUNZIONI DI CALLBACK CHE SI OCCUPANO DI GESTIRE LE INTERAZIONI DELL'UTENTE
 
 	glfwSetFramebufferSizeCallback(window,framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	//glfwSetScrollCallback(window, scroll_callback);
 	//Per avere una maggior capacità di movimento, impostare l'ultimo parametro a GLFW_CURSOR_DISABLED.
 	//Per visualizzare il puntatore, impostare l'ultimo parametro a GLFW_CURSOR_HIDDEN
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
 	// GLAD cerca di caricare il contesto impostato da GLFW
 	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
@@ -235,7 +238,7 @@ int main(){//INIZIALIZZO GLFW
 	// imposto il delta di tempo massimo per aggiornare la simulazione fisica
 	GLfloat maxSecPerFrame = 1.0f / 60.0f;
 
-	debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+	debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawText | btIDebugDraw::DBG_DrawFeaturesText);
 	poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
 
 	projection = glm::perspective(45.0f, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
@@ -298,8 +301,8 @@ void processInput(GLFWwindow *window){
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		throw_ball(bodyBallWhite);
+//	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+//		throw_ball(bodyBallWhite);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
@@ -307,26 +310,37 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
-//	if(firstMouse){
-//		lastX = xpos;
-//		lastY = ypos;
-//
-//		firstMouse = false;
-//	}
-//
-//	mouseX = xpos;
-//	mouseY = ypos;
-//
-//	GLfloat xOffset = xpos - lastX;
-//	GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
-//
-//	lastX = xpos;
-//	lastY = ypos;
-//
-//	camera.ProcessMouseMovement(xOffset, yOffset);
+	if(firstMouse){
+		lastX = xpos;
+		lastY = ypos;
+
+		firstMouse = false;
+	}
 
 	mouseX = xpos;
 	mouseY = ypos;
+
+	GLfloat xOffset = xpos - lastX;
+	GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xOffset, yOffset);
+
+	mouseX = xpos;
+	mouseY = ypos;
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
+    	cout << "Right button pressed!" << endl;
+    }
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+    	//cout << "Left button pressed!" << endl;
+    	throw_ball(bodyBallWhite);
+    }
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
@@ -337,7 +351,7 @@ void throw_ball(btRigidBody* ball){
 	//cout << "Space pressed..." << endl;
 	glm::mat4 worldToScreen = glm::inverse(projection * view);
 
-	GLfloat shootInitialSpeed = 2.0f;
+	GLfloat shootInitialSpeed = 3.0f;
 
 	GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
 			y = -(mouseY / SCR_HEIGHT) * 2 + 1;
@@ -361,9 +375,10 @@ void throw_ball(btRigidBody* ball){
 	glm::vec4 direction = glm::normalize(worldToScreen * mousePos) * shootInitialSpeed;
 	//glm::vec3 direction = glm::normalize(mousePos - ballPos) * shootInitialSpeed;
 
-	impulse = btVector3(direction.x, 0, direction.z);
+	impulse = btVector3(direction.x, direction.y, direction.z);
 
 	cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
+	cout << "WB pos: " << ballPos.x << " - " << ballPos.y << " - " << ballPos.z << endl;
 
 	ball->applyCentralImpulse(impulse);
 
