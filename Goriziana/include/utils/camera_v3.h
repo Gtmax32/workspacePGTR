@@ -25,7 +25,7 @@ enum Camera_Movement {
 
 // Impostazioni di default di camera
 const float YAW         = -90.0f;
-const float PITCH       = 0.0f;
+const float PITCH       = -90.0f;
 // Parametri per gestione interazione con il mouse
 const float SPEED       =  5.0f;
 const float SENSITIVITY =  0.1f;
@@ -82,10 +82,10 @@ public:
         GLfloat velocity = this->MovementSpeed * deltaTime;
         
 		if (direction == FORWARD)
-            this->Position += this->Front * velocity;
+            this->Position += this->Up * velocity;
         
 		if (direction == BACKWARD)
-            this->Position -= this->Front * velocity;
+            this->Position -= this->Up * velocity;
         
 		if (direction == LEFT)
             this->Position -= this->Right * velocity;

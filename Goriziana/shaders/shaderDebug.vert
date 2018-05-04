@@ -13,6 +13,7 @@ uniform mat4 modelMatrix;
 void main(){
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0f);
 	
-	vs_out.color = vec3(1.0f, 1.0f, 0.0f);
+	//vs_out.color = vec3(1.0f, 1.0f, 0.0f);
+	vs_out.color = color;
     
 }

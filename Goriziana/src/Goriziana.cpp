@@ -18,7 +18,7 @@
 #endif
 
 #include <utils/shader_v2.h>
-#include <utils/camera_v2.h>
+#include <utils/camera_v3.h>
 #include <utils/model_v3.h>
 #include <utils/physics_v1.h>
 
@@ -36,6 +36,8 @@
 #include "BulletDebugDrawer.h"
 
 #define NR_LIGHTS 3
+
+using namespace std;
 
 // Dimensioni della finestra dell'applicazione
 const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
@@ -98,8 +100,10 @@ void processInput(GLFWwindow* window);
 
 // Funzioni di utility
 GLuint loadTexture(const char* path);
+GLuint loadCubemap(vector<string> faces);
 void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, Model &table, Model &pin);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
+void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
 
 // Funzioni per gestire il gioco
 void throw_ball(btRigidBody* ball);
@@ -116,7 +120,7 @@ glm::mat3 normal(1.0f);
 int main(){//INIZIALIZZO GLFW
 
 	if (! glfwInit()){
-		std::cout << "Errore nell'inizializzazione di GLFW!\n" << std::endl;
+		cout << "Errore nell'inizializzazione di GLFW!\n" << endl;
 		return -1;
 	}
 
@@ -131,7 +135,7 @@ int main(){//INIZIALIZZO GLFW
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH,SCR_HEIGHT,"Goriziana",nullptr,nullptr);
 
 	if (!window){
-		std::cout <<"Errore nella creazione della finestra!" << std::endl;
+		cout <<"Errore nella creazione della finestra!" << endl;
 		glfwTerminate();
 
 		return -1;
@@ -144,24 +148,34 @@ int main(){//INIZIALIZZO GLFW
 	glfwSetFramebufferSizeCallback(window,framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	//glfwSetScrollCallback(window, scroll_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	//Per avere una maggior capacità di movimento, impostare l'ultimo parametro a GLFW_CURSOR_DISABLED.
+	//Per visualizzare il puntatore, impostare l'ultimo parametro a GLFW_CURSOR_HIDDEN
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// GLAD cerca di caricare il contesto impostato da GLFW
 	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-		std::cout << "Errore nell'inizializzazione del contesto OpenGL!" << std::endl;
+		cout << "Errore nell'inizializzazione del contesto OpenGL!" << endl;
 		return -1;
 	}
 
-	//SETTO IL VIEWPORT
-	//glViewport(0,0,SCR_WIDTH,SCR_HEIGHT);
-
 	//SETTO IL DEPTH TEST
 	glEnable(GL_DEPTH_TEST);
+
+	//VETTORE UTILIZZATO PER CARICARE LA CUBEMAP
+	vector<string> faces = {
+		"skybox/right.jpg",
+		"skybox/left.jpg",
+		"skybox/top.jpg",
+		"skybox/bottom.jpg",
+		"skybox/front.jpg",
+		"skybox/back.jpg"
+	};
 
 	//UTILIZZO LA CLASSE SHADER CREATA PER COMPILARE IL VS ED IL FS, E LINKARLI NEL PS
 	Shader shaderNoTexture("shaders/shaderNoTexture.vert", "shaders/shaderNoTexture.frag");
 	Shader shaderTexture("shaders/shaderTexture.vert","shaders/shaderTexture.frag");
 	Shader shaderDebugger("shaders/shaderDebug.vert", "shaders/shaderDebug.frag");
+	Shader shaderSkybox("shaders/shaderSkybox.vert", "shaders/shaderSkybox.frag");
 
 	//UTILIZZO LA CLASSE MODEL CREATA PER CARICARE E VISUALIZZARE IL MODELLO 3D
 	//Model modelRoom("../../table/resource/Room.obj");
@@ -169,6 +183,7 @@ int main(){//INIZIALIZZO GLFW
 	Model modelBall("models/ball/ball.obj");
 	Model modelPin("models/pin/High_Poly.obj");
 	Model modelPlane("models/plane/plane.obj");
+	Model modelSkybox("models/cube/cube.obj");
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AL PIANO
 	glm::vec3 bodyPlaneSize = glm::vec3(10.0f, 0.1f, 10.0f);
@@ -223,6 +238,8 @@ int main(){//INIZIALIZZO GLFW
 	debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 	poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
 
+	projection = glm::perspective(45.0f, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
+
 	//AVVIO IL RENDER LOOP
 	while(!glfwWindowShouldClose(window)){
 		GLfloat currentFrame = glfwGetTime();
@@ -232,19 +249,20 @@ int main(){//INIZIALIZZO GLFW
 		glClearColor(0.31f, 0.76f, 0.92f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		projection = glm::perspective(45.0f, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
 		view = camera.GetViewMatrix();
-
-		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
-
-		draw_model_texture(shaderTexture, modelPlane, bodyPlane, modelTable, modelPin);
-
-		model = glm::mat4(0.5f);
 
 		debugger.SetMatrices(&shaderDebugger, projection, view, model);
 		poolSimulation.dynamicsWorld->debugDrawWorld();
 
 		poolSimulation.dynamicsWorld->stepSimulation((deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
+
+		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
+
+		draw_model_texture(shaderTexture, modelPlane, bodyPlane, modelTable, modelPin);
+
+		//draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
+
+		model = glm::mat4(1.0f);
 
 		processInput(window);
 
@@ -255,6 +273,7 @@ int main(){//INIZIALIZZO GLFW
 	shaderTexture.Delete();
 	shaderNoTexture.Delete();
 	shaderDebugger.Delete();
+	shaderSkybox.Delete();
 
 	poolSimulation.Clear();
 
@@ -315,7 +334,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 }
 
 void throw_ball(btRigidBody* ball){
-	//std::cout << "Space pressed..." << std::endl;
+	//cout << "Space pressed..." << endl;
 	glm::mat4 worldToScreen = glm::inverse(projection * view);
 
 	GLfloat shootInitialSpeed = 2.0f;
@@ -344,22 +363,24 @@ void throw_ball(btRigidBody* ball){
 
 	impulse = btVector3(direction.x, 0, direction.z);
 
-	std::cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << std::endl;
+	cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
 
 	ball->applyCentralImpulse(impulse);
 
 	//ball->setLinearFactor(btVector3(1, 0, 1));
 
-	//std::cout << "\nX: " << x << " - Y: " << y << "\nBall X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << std::endl;
+	//cout << "\nX: " << x << " - Y: " << y << "\nBall X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << endl;
 }
 
-// Carico immagine da disco e creo texture OpengGL
+// Carico un'immagine e creo texture OpengGL
 GLuint loadTexture(char const * path){
 	GLuint textureID;
+	GLint width, height, nrComponents;
+
 	glGenTextures(1, &textureID);
 
-	GLint width, height, nrComponents;
 	unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+
 	if (data){
 		GLenum format;
 		if (nrComponents == 1)
@@ -381,11 +402,44 @@ GLuint loadTexture(char const * path){
 		stbi_image_free(data);
 	}
 	else{
-		std::cout << "Texture failed to load at path: " << path << std::endl;
+		cout << "Texture failed to load at path: " << path << endl;
 		stbi_image_free(data);
 	}
 
 	return textureID;
+}
+
+// Carico le immagini per formare una Cubemap
+GLuint loadCubemap(vector<string> faces){
+	GLuint textureID;
+	GLint width, height, nrChannels;
+
+	glGenTextures(1, &textureID);
+	glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+    for (GLuint i = 0; i < faces.size(); i++){
+        unsigned char *face = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+
+        if (face){
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, face);
+            stbi_image_free(face);
+        }
+        else {
+            cout << "Cubemap texture failed to load at path: " << faces[i] << endl;
+            stbi_image_free(face);
+        }
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+    return textureID;
 }
 
 // Imposto lo shader e renderizzo i modelli degli oggetti senza texture
@@ -480,7 +534,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	ball.Draw(shaderNT);
 }
 
-// Imposto lo shaderT e renderizzo i modelli degli oggetti con texture
+// Imposto lo shader e renderizzo i modelli degli oggetti con texture
 void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, Model &table, Model &pin){
 //	glm::mat4 model(1.0f);
 //	glm::mat4 normal(1.0f);
@@ -568,4 +622,25 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, M
 
 	plane.Draw(shaderT);
 }
+
+// Imposto lo shader e renderizzo la Cubemap
+void draw_skybox(Shader &shaderSB, Model &box, GLuint texture){
+	glDepthFunc(GL_LEQUAL);
+	shaderSB.Use();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+
+	view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+
+	shaderSB.setMat4("projectionMatrix",projection);
+	shaderSB.setMat4("viewMatrix",view);
+	shaderSB.setInt("tCube",0);
+
+	box.Draw(shaderSB);
+
+	glDepthFunc(GL_LESS);
+}
+
+
 

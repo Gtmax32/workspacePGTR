@@ -127,9 +127,12 @@ public:
         checkCompileErrors(this->ID, "PROGRAM");
         
 		// gli shader sono linkati allo Shader Program, li posso cancellare
+        glDetachShader(this->ID, vertex);
+        glDetachShader(this->ID, fragment);
         glDeleteShader(vertex);
         glDeleteShader(fragment);
         if(geometryPath != nullptr)
+        	glDetachShader(this->ID, geometry);
             glDeleteShader(geometry);
     }
 	

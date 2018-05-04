@@ -5,17 +5,11 @@
 
 #include <utils/shader_v2.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/LinearMath/btIDebugDraw.h>
 
 class BulletDebugDrawer : public btIDebugDraw {
 public:	
 	int m_debugMode;
-	Shader* shaderDebug;
 	
 	BulletDebugDrawer();
 	~BulletDebugDrawer();

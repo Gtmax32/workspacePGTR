@@ -6,12 +6,14 @@
 
 GLuint VBO, VAO;
 
-BulletDebugDrawer::BulletDebugDrawer(){}
+BulletDebugDrawer::BulletDebugDrawer(){
+	this->m_debugMode = 1;
+}
 
 BulletDebugDrawer::~BulletDebugDrawer(){}
 
 void BulletDebugDrawer::SetMatrices(Shader *shader, glm::mat4 viewMatrix, glm::mat4 projectionMatrix, glm::mat4 modelMatrix){
-	//shader->Use();
+	shader->Use();
 
 	shader->setMat4("projectionMatrix", projectionMatrix);
 	shader->setMat4("viewMatrix", viewMatrix);
