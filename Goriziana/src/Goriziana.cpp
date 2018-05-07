@@ -26,6 +26,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 // Libreria per il caricamento delle immagini
 #define STB_IMAGE_IMPLEMENTATION
@@ -44,7 +45,7 @@ const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 // Camera
 //Camera camera(glm::vec3(0.0f, 20.0f, 0.0f));
-Camera camera(-7.0f, 8.0f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+Camera camera(-9.0f, 8.0f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 
 // Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float)SCR_WIDTH / 2.0f;
@@ -55,9 +56,6 @@ double mouseX, mouseY;
 // Deltatime per uniformare la velocità di movimento
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
-
-// Posizione del light cube nella scena
-glm::vec3 lightPos(0.5f, 0.2f, 2.0f);
 
 // posizioni delle mie pointlight
 glm::vec3 lightPositions[] = {
@@ -84,11 +82,11 @@ GLfloat quadratic = 0.032f;
 //Dimensione della sfera
 glm::vec3 sphereSize = glm::vec3(0.5f, 0.5f, 0.5f);
 
-//Posizione delle palle del gioco
+//Posizione delle biglie del gioco
 glm::vec3 poolBallPos[] = {
-		glm::vec3(-5.5f, 14.0f, -2.2f), // palla bianca
-		glm::vec3(5.5f, 14.0f, 0.0f), // palla rossa
-		glm::vec3(-5.5f, 14.0f, 2.2f) // palla gialla
+		glm::vec3(-5.5f, 14.0f, -2.2f), // biglia bianca
+		glm::vec3(5.5f, 14.0f, 0.0f), // biglia rossa
+		glm::vec3(-5.5f, 14.0f, 2.2f) // biglia gialla
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -103,7 +101,7 @@ void processInput(GLFWwindow* window);
 // Funzioni di utility
 GLuint loadTexture(const char* path);
 GLuint loadCubemap(vector<string> faces);
-void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, Model &table, Model &pin);
+void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
 
@@ -163,6 +161,8 @@ int main(){//INIZIALIZZO GLFW
 
 	//SETTO IL DEPTH TEST
 	glEnable(GL_DEPTH_TEST);
+
+	glfwSetCursorPos(window, (double)(SCR_WIDTH/2), (double)(SCR_HEIGHT/2));
 
 	//VETTORE UTILIZZATO PER CARICARE LA CUBEMAP
 	vector<string> faces = {
@@ -226,7 +226,7 @@ int main(){//INIZIALIZZO GLFW
 
 	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.3, 0.3);
 
-	//CREO IL CORPO RIGIDO DA ASSEGNARE ALLE PALLE
+	//CREO IL CORPO RIGIDO DA ASSEGNARE ALLE BIGLIE
 	glm::vec3 bodyBallRadius = sphereSize;
 	glm::vec3 bodyBallRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -235,8 +235,18 @@ int main(){//INIZIALIZZO GLFW
 	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
 	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
 
+	//Carico la texture per il pavimento
+	GLuint textureFloor = loadTexture("textures/floor.jpg");
+
+	//Carico le texture per lo skybox
+	GLuint textureSkybox = loadCubemap(faces);
+
 	// imposto il delta di tempo massimo per aggiornare la simulazione fisica
 	GLfloat maxSecPerFrame = 1.0f / 60.0f;
+
+	btTransform transform;
+	btVector3 origin;
+	glm::vec3 pos;
 
 	debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawText | btIDebugDraw::DBG_DrawFeaturesText);
 	poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
@@ -252,7 +262,13 @@ int main(){//INIZIALIZZO GLFW
 		glClearColor(0.31f, 0.76f, 0.92f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		view = camera.GetViewMatrix();
+		//view = camera.GetViewMatrix();
+
+		bodyBallWhite->getMotionState()->getWorldTransform(transform);
+		origin = transform.getOrigin();
+
+		pos = glm::vec3(origin.getX(), origin.getY(), origin.getZ()) + glm::vec3(-4.0f, 2.0f, 0.0f);
+		view = camera.lookAtObject(pos);
 
 		debugger.SetMatrices(&shaderDebugger, projection, view, model);
 		poolSimulation.dynamicsWorld->debugDrawWorld();
@@ -261,7 +277,7 @@ int main(){//INIZIALIZZO GLFW
 
 		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
 
-		draw_model_texture(shaderTexture, modelPlane, bodyPlane, modelTable, modelPin);
+		draw_model_texture(shaderTexture, modelPlane, bodyPlane, textureFloor, modelTable, modelPin);
 
 		//draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
 
@@ -286,21 +302,21 @@ int main(){//INIZIALIZZO GLFW
 }
 
 void processInput(GLFWwindow *window){
-	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-
-	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
-
-	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime);
-
-	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime);
-
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
+			glfwSetWindowShouldClose(window, true);
 
+//	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+//		camera.ProcessKeyboard(FORWARD, deltaTime);
+//
+//	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+//		camera.ProcessKeyboard(BACKWARD, deltaTime);
+//
+//	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+//		camera.ProcessKeyboard(LEFT, deltaTime);
+//
+//	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+//		camera.ProcessKeyboard(RIGHT, deltaTime);
+//
 //	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 //		throw_ball(bodyBallWhite);
 }
@@ -317,9 +333,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 		firstMouse = false;
 	}
 
-	mouseX = xpos;
-	mouseY = ypos;
-
 	GLfloat xOffset = xpos - lastX;
 	GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
 
@@ -333,13 +346,14 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
-    	cout << "Right button pressed!" << endl;
-    }
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+		//cout << "Left button pressed!" << endl;
+		throw_ball(bodyBallWhite);
+	}
 
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
-    	//cout << "Left button pressed!" << endl;
-    	throw_ball(bodyBallWhite);
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
+    	//cout << "Right button pressed!" << endl;
+    	cout << "ViewMatrix: " << glm::to_string(view) << endl;
     }
 }
 
@@ -351,7 +365,7 @@ void throw_ball(btRigidBody* ball){
 	//cout << "Space pressed..." << endl;
 	glm::mat4 worldToScreen = glm::inverse(projection * view);
 
-	GLfloat shootInitialSpeed = 3.0f;
+	GLfloat shootInitialSpeed = 15.0f;
 
 	GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
 			y = -(mouseY / SCR_HEIGHT) * 2 + 1;
@@ -378,11 +392,12 @@ void throw_ball(btRigidBody* ball){
 	impulse = btVector3(direction.x, direction.y, direction.z);
 
 	cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
-	cout << "WB pos: " << ballPos.x << " - " << ballPos.y << " - " << ballPos.z << endl;
+	//cout << "WB pos: " << ballPos.x << " - " << ballPos.y << " - " << ballPos.z << endl;
 
 	ball->applyCentralImpulse(impulse);
 
-	//ball->setLinearFactor(btVector3(1, 0, 1));
+	//Lo uso per evitare che la biglia salti
+	ball->setLinearFactor(btVector3(1, 0, 1));
 
 	//cout << "\nX: " << x << " - Y: " << y << "\nBall X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << endl;
 }
@@ -461,13 +476,14 @@ GLuint loadCubemap(vector<string> faces){
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow){
 //	glm::mat4 model(1.0f);
 //	glm::mat4 normal(1.0f);
+	glm::mat4 whitePos(1.0f);
 
 	GLfloat matrix[16];
 	btTransform transform;
 
 	shaderNT.Use();
 
-	//RENDERIZZO LE PALLE DA BILIARDO
+	//RENDERIZZO LE BIGLIE DA BILIARDO
 	//INIZIO DALLA BIANCA
 	shaderNT.setVec3("diffuseColor", 1.0f, 1.0f, 1.0f);
 	shaderNT.setVec3("ambientColor", ambientColor);
@@ -508,7 +524,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 
 	ball.Draw(shaderNT);
 
-	//RENDERIZZO LA PALLA ROSSA
+	//RENDERIZZO LA BIGLIA ROSSA
 	shaderNT.setVec3("diffuseColor", 1.0f, 0.0f, 0.0f);
 
 	model = glm::mat4(1.0f);
@@ -528,7 +544,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 
 	ball.Draw(shaderNT);
 
-	//RENDERIZZO LA PALLA GIALLA
+	//RENDERIZZO LA BIGLIA GIALLA
 	shaderNT.setVec3("diffuseColor", 1.0f, 1.0f, 0.0f);
 
 	model = glm::mat4(1.0f);
@@ -550,14 +566,12 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 }
 
 // Imposto lo shader e renderizzo i modelli degli oggetti con texture
-void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, Model &table, Model &pin){
+void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin){
 //	glm::mat4 model(1.0f);
 //	glm::mat4 normal(1.0f);
 
 	btTransform transform;
 	GLfloat matrix[16];
-
-	GLint texture = loadTexture("textures/floor.jpg");
 
 	//RENDERIZZO IL TAVOLO
 	shaderT.Use();

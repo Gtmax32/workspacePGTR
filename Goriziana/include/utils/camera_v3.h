@@ -77,6 +77,10 @@ public:
         return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
     }
 
+    glm::mat4 lookAtObject(glm::vec3 objPos){
+    	return glm::lookAt(objPos, objPos + this->Front, this->Up);
+    }
+
     // Aggiorna la posizione della camera in base alla pressione dei tasti W,A,S e D
     void ProcessKeyboard(Camera_Movement direction, float deltaTime) {
         GLfloat velocity = this->MovementSpeed * deltaTime;
@@ -98,7 +102,9 @@ public:
 
     // Aggiorna la posizione della camera in base al movimento del mouse
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true) {
-        // Applica il parametro di sensitività per pesare lo spostamento
+        std::cout << "Xoffset: " << xoffset << " Yoffset: " << yoffset << std::endl;
+
+    	// Applica il parametro di sensitività per pesare lo spostamento
 		xoffset *= this->MouseSensitivity;
         yoffset *= this->MouseSensitivity;
 		
