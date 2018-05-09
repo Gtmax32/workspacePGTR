@@ -50,6 +50,8 @@ public:
     float MouseSensitivity;
     float Zoom;
 
+    glm::vec3 ballPos;
+
     // Costruttore completo
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
 		
@@ -78,6 +80,7 @@ public:
     }
 
     glm::mat4 lookAtObject(glm::vec3 objPos){
+    	this->ballPos = objPos;
     	return glm::lookAt(objPos, objPos + this->Front, this->Up);
     }
 
@@ -101,10 +104,8 @@ public:
     }
 
     // Aggiorna la posizione della camera in base al movimento del mouse
-    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true) {
-        std::cout << "Xoffset: " << xoffset << " Yoffset: " << yoffset << std::endl;
-
-    	// Applica il parametro di sensitività per pesare lo spostamento
+    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = false) {
+        // Applica il parametro di sensitivita' per pesare lo spostamento
 		xoffset *= this->MouseSensitivity;
         yoffset *= this->MouseSensitivity;
 		
@@ -138,7 +139,7 @@ public:
             Zoom = 45.0f;
     }
 	
-	// Ruota la camera per ottenere una visuale dall'alto
+	// Ruota la camera
 	void RotateCamera(){
 		
 	}

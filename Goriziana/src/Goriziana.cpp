@@ -45,7 +45,7 @@ const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 // Camera
 //Camera camera(glm::vec3(0.0f, 20.0f, 0.0f));
-Camera camera(-9.0f, 8.0f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+Camera camera(-9.0f, 7.6f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 
 // Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float)SCR_WIDTH / 2.0f;
