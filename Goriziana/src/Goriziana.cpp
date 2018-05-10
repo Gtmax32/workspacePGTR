@@ -18,7 +18,7 @@
 #endif
 
 #include <utils/shader_v2.h>
-#include <utils/camera_v3.h>
+#include <utils/camera.h>
 #include <utils/model_v3.h>
 #include <utils/physics_v1.h>
 
@@ -45,7 +45,7 @@ const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 // Camera
 //Camera camera(glm::vec3(0.0f, 20.0f, 0.0f));
-Camera camera(-9.0f, 7.6f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+Camera camera(-7.0f, 9.0f, 6.0f, 0.0f, 3.0f, 1.0f);
 
 // Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float)SCR_WIDTH / 2.0f;
@@ -111,6 +111,8 @@ void throw_ball(btRigidBody* ball);
 Physics poolSimulation;
 BulletDebugDrawer debugger;
 btRigidBody* bodyBallWhite;
+
+glm::vec3 selectedBallPos(0.0f);
 
 glm::mat4 projection(1.0f);
 glm::mat4 view(1.0f);
@@ -246,12 +248,12 @@ int main(){//INIZIALIZZO GLFW
 
 	btTransform transform;
 	btVector3 origin;
-	glm::vec3 pos;
 
 	debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawText | btIDebugDraw::DBG_DrawFeaturesText);
 	poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
 
-	projection = glm::perspective(45.0f, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
+	camera.setPerspective(45.0f,(float)SCR_WIDTH/(float)SCR_HEIGHT, 1.0f, 10000.0f);
+	projection = camera.getProjectionMatrix();
 
 	//AVVIO IL RENDER LOOP
 	while(!glfwWindowShouldClose(window)){
@@ -262,13 +264,12 @@ int main(){//INIZIALIZZO GLFW
 		glClearColor(0.31f, 0.76f, 0.92f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//view = camera.GetViewMatrix();
-
 		bodyBallWhite->getMotionState()->getWorldTransform(transform);
 		origin = transform.getOrigin();
 
-		pos = glm::vec3(origin.getX(), origin.getY(), origin.getZ()) + glm::vec3(-4.0f, 2.0f, 0.0f);
-		view = camera.lookAtObject(pos);
+		selectedBallPos = glm::vec3(origin.getX(), origin.getY(), origin.getZ()) + glm::vec3(-4.0f, 2.0f, 0.0f);
+		camera.setObjectPos(selectedBallPos);
+		view = camera.getViewMatrix();
 
 		debugger.SetMatrices(&shaderDebugger, projection, view, model);
 		poolSimulation.dynamicsWorld->debugDrawWorld();
@@ -305,17 +306,17 @@ void processInput(GLFWwindow *window){
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, true);
 
-//	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-//		camera.ProcessKeyboard(FORWARD, deltaTime);
-//
-//	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-//		camera.ProcessKeyboard(BACKWARD, deltaTime);
-//
-//	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-//		camera.ProcessKeyboard(LEFT, deltaTime);
-//
-//	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-//		camera.ProcessKeyboard(RIGHT, deltaTime);
+	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera.moveCamera(0.05f);
+
+	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.moveCamera(-0.05f);
+
+	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.rotateAroundObject(camera.View, 0.05f, 0.0f, 1.0f, 0.0f);
+
+	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera.rotateAroundObject(camera.View, -0.05f, 0.0f, 1.0f, 0.0f);
 //
 //	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 //		throw_ball(bodyBallWhite);
@@ -326,20 +327,20 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
-	if(firstMouse){
-		lastX = xpos;
-		lastY = ypos;
-
-		firstMouse = false;
-	}
-
-	GLfloat xOffset = xpos - lastX;
-	GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
-
-	lastX = xpos;
-	lastY = ypos;
-
-	camera.ProcessMouseMovement(xOffset, yOffset);
+//	if(firstMouse){
+//		lastX = xpos;
+//		lastY = ypos;
+//
+//		firstMouse = false;
+//	}
+//
+//	GLfloat xOffset = xpos - lastX;
+//	GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
+//
+//	lastX = xpos;
+//	lastY = ypos;
+//
+//	camera.ProcessMouseMovement(xOffset, yOffset);
 
 	mouseX = xpos;
 	mouseY = ypos;
@@ -358,7 +359,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
-	camera.ProcessMouseScroll(yoffset);
+	//camera.ProcessMouseScroll(yoffset);
 }
 
 void throw_ball(btRigidBody* ball){
@@ -660,7 +661,7 @@ void draw_skybox(Shader &shaderSB, Model &box, GLuint texture){
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 
-	view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+	view = glm::mat4(glm::mat3(camera.getViewMatrix()));
 
 	shaderSB.setMat4("projectionMatrix",projection);
 	shaderSB.setMat4("viewMatrix",view);
