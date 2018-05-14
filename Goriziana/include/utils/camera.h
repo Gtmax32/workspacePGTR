@@ -93,7 +93,7 @@ public:
 	}
 
 	void rotateAroundObject(vec3 objPos, GLfloat angle, GLfloat x, GLfloat y, GLfloat z) {
-		vec3 newPosition = vec3(1.0f);
+		vec3 oldPosition = this->Position;
 
 		//Get the direction vector from camera to obj
 		vec3 direction = normalize(this->Position - objPos);
@@ -122,15 +122,14 @@ public:
 //		// our new rotated position of our camera.
 //		this->Position = objPos + newPosition;
 
-		mat4 translation = translate(mat4(1.0f), this->Position);
+		mat4 translation = translate(mat4(1.0f), -objPos);
 		std::cout << "Translation: " << to_string(translation) << std::endl;
 		mat4 rotation = rotate(translation, angle, vec3(x,y,z));
 		std::cout << "Rotation: " << to_string(rotation) << std::endl;
-		mat4 completeTransformation = translate(rotation, -this->Position);
+		mat4 completeTransformation = translate(rotation, objPos);
 		std::cout << "Back Translation: " << to_string(completeTransformation) << std::endl;
 
-		this->Position = completeTransformation * vec4(this->Position, 1.0f);
-
+		this->Position = completeTransformation * vec4(oldPosition, 0.0f);
 	}
 
 	void moveCamera(GLfloat speed) {

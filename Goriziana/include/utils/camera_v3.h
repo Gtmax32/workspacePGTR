@@ -15,6 +15,8 @@ Classe Camera
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+using namespace glm;
+
 // Possibili movimenti della camera
 enum Camera_Movement {
     FORWARD,
@@ -35,13 +37,13 @@ const float ZOOM        =  45.0f;
 class Camera {
 public:
     // Attributi della Camera
-    glm::vec3 Position;
-    glm::vec3 Front;
+    vec3 Position;
+    vec3 Front;
     // Vettore UP locale della Camera
-	glm::vec3 Up;
-    glm::vec3 Right;
+	vec3 Up;
+    vec3 Right;
     // Vettore UP del mondo, serve per il calcolo iniziale del vettore Right
-	glm::vec3 WorldUp;
+	vec3 WorldUp;
     // Angoli di Eulero
     float Yaw;
     float Pitch;
@@ -50,10 +52,10 @@ public:
     float MouseSensitivity;
     float Zoom;
 
-    glm::vec3 ballPos;
+    vec3 selectedBallPos;
 
     // Costruttore completo
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
+    Camera(vec3 position = vec3(0.0f, 0.0f, 0.0f), vec3 up = vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
 		
         this->Position = position;
         this->WorldUp = up;
@@ -64,10 +66,10 @@ public:
     }
 	
     // Costruttore semplificato
-    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
+    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
 		
-        this->Position = glm::vec3(posX, posY, posZ);
-        this->WorldUp = glm::vec3(upX, upY, upZ);
+        this->Position = vec3(posX, posY, posZ);
+        this->WorldUp = vec3(upX, upY, upZ);
         this->Yaw = yaw;
         this->Pitch = pitch;
         // Inizializza il sistema di riferimento della camera sulla base dei vettori passati al costruttore
@@ -75,13 +77,12 @@ public:
     }
 
     // Restituisce la view matrix calcolata usando gli angeli di Eulero e la LookAt Matrix
-    glm::mat4 GetViewMatrix() {
-        return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
+    mat4 GetViewMatrix() {
+        return lookAt(this->Position, this->Position + this->Front, this->Up);
     }
 
-    glm::mat4 lookAtObject(glm::vec3 objPos){
-    	this->ballPos = objPos;
-    	return glm::lookAt(objPos, objPos + this->Front, this->Up);
+    mat4 lookAtObject(){
+    	return lookAt(this->selectedBallPos, this->selectedBallPos + this->Front, this->Up);
     }
 
     // Aggiorna la posizione della camera in base alla pressione dei tasti W,A,S e D
@@ -139,24 +140,51 @@ public:
             Zoom = 45.0f;
     }
 	
-	// Ruota la camera
-	void RotateCamera(){
-		
+	// Ruota la camera attorno al vettore Up
+	void RotateCamera(float deltaTime){
+		GLfloat velocity = this->MovementSpeed * deltaTime;
+
+		this->Yaw += velocity;
+
+		this->updateCameraVectors();
+	}
+
+	// Ruota la camera attorno ad un punto nello spazio
+	mat4 RotateAroundPoint(vec3 objectPoint, GLfloat angle, vec3 axis){
+		vec3 oldPosition = this->Position;
+
+		//vec3 direction = normalize(this->Position - objectPoint);
+
+		mat4 translation = translate(mat4(1.0f), -objectPoint);
+		mat4 rotation = rotate(translation, angle * this->MovementSpeed, axis);
+		mat4 complete = translate(rotation, objectPoint);
+
+		this->Position = complete * vec4(oldPosition, 1.0f);
+
+		return lookAt(objectPoint, objectPoint + this->Front, this->Up);
+	}
+
+	void setObjectPos(vec3 objPos) {
+		this->selectedBallPos = objPos;
+	}
+
+	vec3 getObjectPos() {
+		return this->selectedBallPos;
 	}
 
 private:
     // Aggiorna il sistema di riferimento della camera
     void updateCameraVectors() {
         // Calcola il nuovo vettore Front, tramite calcoli trigonometrici legati agli angoli di Yaw e Pitch
-        glm::vec3 front;
-        front.x = cos(glm::radians(this->Yaw)) * cos(glm::radians(this->Pitch));
-        front.y = sin(glm::radians(this->Pitch));
-        front.z = sin(glm::radians(this->Yaw)) * cos(glm::radians(this->Pitch));
-        this->Front = glm::normalize(front);
+        vec3 front;
+        front.x = cos(radians(this->Yaw)) * cos(radians(this->Pitch));
+        front.y = sin(radians(this->Pitch));
+        front.z = sin(radians(this->Yaw)) * cos(radians(this->Pitch));
+        this->Front = normalize(front);
         // Una volta calcolata la nuova direzione di vista, ricalcolo il vettore Right come prodotto vettoriale tra Front e la UP del mondo
-		this->Right = glm::normalize(glm::cross(this->Front, this->WorldUp));
+		this->Right = normalize(cross(this->Front, this->WorldUp));
 		// Calcolo il vettore UP locale della camera, come prodotto vettoriale tra Front e Right
-        this->Up = glm::normalize(glm::cross(this->Right, this->Front));
+        this->Up = normalize(cross(this->Right, this->Front));
     }
 };
 #endif

@@ -18,7 +18,7 @@
 #endif
 
 #include <utils/shader_v2.h>
-#include <utils/camera.h>
+#include <utils/camera_v3.h>
 #include <utils/model_v3.h>
 #include <utils/physics_v1.h>
 
@@ -44,8 +44,8 @@ using namespace std;
 const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 // Camera
-//Camera camera(glm::vec3(0.0f, 20.0f, 0.0f));
-Camera camera(-7.0f, 9.0f, 6.0f, 0.0f, 3.0f, 1.0f);
+Camera camera(-7.0f, 15.0f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+//Camera camera(-8.0f, 9.0f, -2.2f, 6.0f, 1.0f, 0.0f);
 
 // Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float)SCR_WIDTH / 2.0f;
@@ -252,8 +252,13 @@ int main(){//INIZIALIZZO GLFW
 	debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawText | btIDebugDraw::DBG_DrawFeaturesText);
 	poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
 
-	camera.setPerspective(45.0f,(float)SCR_WIDTH/(float)SCR_HEIGHT, 1.0f, 10000.0f);
-	projection = camera.getProjectionMatrix();
+	// Codice per la versione camera.h
+//	camera.setPerspective(45.0f,(float)SCR_WIDTH/(float)SCR_HEIGHT, 1.0f, 10000.0f);
+//	projection = camera.getProjectionMatrix();
+
+	// Codice per la versione camera_v3.h
+	projection = glm::perspective(45.0f, (float)SCR_WIDTH/(float)SCR_HEIGHT, 1.0f, 10000.0f);
+	view = camera.lookAtObject();
 
 	//AVVIO IL RENDER LOOP
 	while(!glfwWindowShouldClose(window)){
@@ -264,12 +269,12 @@ int main(){//INIZIALIZZO GLFW
 		glClearColor(0.31f, 0.76f, 0.92f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// Codice per la versione camera.h
 		bodyBallWhite->getMotionState()->getWorldTransform(transform);
 		origin = transform.getOrigin();
 
-		selectedBallPos = glm::vec3(origin.getX(), origin.getY(), origin.getZ()) + glm::vec3(-4.0f, 2.0f, 0.0f);
+		selectedBallPos = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
 		camera.setObjectPos(selectedBallPos);
-		view = camera.getViewMatrix();
 
 		debugger.SetMatrices(&shaderDebugger, projection, view, model);
 		poolSimulation.dynamicsWorld->debugDrawWorld();
@@ -304,19 +309,19 @@ int main(){//INIZIALIZZO GLFW
 
 void processInput(GLFWwindow *window){
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-			glfwSetWindowShouldClose(window, true);
+		glfwSetWindowShouldClose(window, true);
 
 	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.moveCamera(0.05f);
+		camera.ProcessKeyboard(FORWARD, deltaTime);
 
 	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.moveCamera(-0.05f);
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
 
 	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.rotateAroundObject(camera.View, 0.05f, 0.0f, 1.0f, 0.0f);
+		view = camera.RotateAroundPoint(selectedBallPos, -deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
 
 	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.rotateAroundObject(camera.View, -0.05f, 0.0f, 1.0f, 0.0f);
+		view = camera.RotateAroundPoint(selectedBallPos, deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
 //
 //	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 //		throw_ball(bodyBallWhite);
@@ -661,7 +666,7 @@ void draw_skybox(Shader &shaderSB, Model &box, GLuint texture){
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 
-	view = glm::mat4(glm::mat3(camera.getViewMatrix()));
+	view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
 
 	shaderSB.setMat4("projectionMatrix",projection);
 	shaderSB.setMat4("viewMatrix",view);
