@@ -29,10 +29,11 @@ enum Camera_Movement {
 const float YAW         = -90.0f;
 const float PITCH       = -90.0f;
 // Parametri per gestione interazione con il mouse
-const float SPEED       =  5.0f;
+const float SPEED       =  100.0f;
 const float SENSITIVITY =  0.1f;
 const float ZOOM        =  45.0f;
 
+const vec3 OFFSET(-3.0f, 0.0f, 0.0f);
 /********** classe CAMERA **********/
 class Camera {
 public:
@@ -82,7 +83,7 @@ public:
     }
 
     mat4 lookAtObject(){
-    	return lookAt(this->selectedBallPos, this->selectedBallPos + this->Front, this->Up);
+    	return lookAt(this->selectedBallPos + OFFSET, this->selectedBallPos + this->Front, this->Up);
     }
 
     // Aggiorna la posizione della camera in base alla pressione dei tasti W,A,S e D
@@ -151,17 +152,23 @@ public:
 
 	// Ruota la camera attorno ad un punto nello spazio
 	mat4 RotateAroundPoint(vec3 objectPoint, GLfloat angle, vec3 axis){
+		GLfloat velocity = this->MovementSpeed * angle;
+
 		vec3 oldPosition = this->Position;
 
-		//vec3 direction = normalize(this->Position - objectPoint);
+		vec3 direction = normalize(this->Position - objectPoint);
 
-		mat4 translation = translate(mat4(1.0f), -objectPoint);
-		mat4 rotation = rotate(translation, angle * this->MovementSpeed, axis);
-		mat4 complete = translate(rotation, objectPoint);
+		mat4 translation = translate(mat4(1.0f), direction);
+		mat4 rotation = rotate(translation, velocity, axis);
+		mat4 complete = translate(rotation, -direction);
 
 		this->Position = complete * vec4(oldPosition, 1.0f);
 
-		return lookAt(objectPoint, objectPoint + this->Front, this->Up);
+		this->Yaw -= velocity;
+
+		this->updateCameraVectors();
+
+		return lookAt(objectPoint + OFFSET, objectPoint + this->Front, this->Up);
 	}
 
 	void setObjectPos(vec3 objPos) {
