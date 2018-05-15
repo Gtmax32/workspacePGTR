@@ -106,7 +106,7 @@ public:
     }
 
     // Aggiorna la posizione della camera in base al movimento del mouse
-    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = false) {
+    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true) {
         // Applica il parametro di sensitivita' per pesare lo spostamento
 		xoffset *= this->MouseSensitivity;
         yoffset *= this->MouseSensitivity;
@@ -164,7 +164,7 @@ public:
 
 		this->Position = complete * vec4(oldPosition, 1.0f);
 
-		this->Yaw -= velocity;
+		this->Yaw += velocity;
 
 		this->updateCameraVectors();
 

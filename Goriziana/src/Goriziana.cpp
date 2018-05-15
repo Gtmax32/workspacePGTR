@@ -273,7 +273,7 @@ int main(){//INIZIALIZZO GLFW
 		glClearColor(0.31f, 0.76f, 0.92f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		view = camera.lookAtObject();
+		processInput(window);
 
 		// Codice per la versione camera.h
 //		bodyBallWhite->getMotionState()->getWorldTransform(transform);
@@ -287,6 +287,8 @@ int main(){//INIZIALIZZO GLFW
 //
 //		poolSimulation.dynamicsWorld->stepSimulation((deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
 
+		view = camera.lookAtObject();
+
 		draw_model_notexture(shaderNoTexture, modelBall);
 
 		draw_model_texture(shaderTexture, modelPlane, textureFloor, modelTable, modelPin);
@@ -294,8 +296,6 @@ int main(){//INIZIALIZZO GLFW
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
 
 		model = glm::mat4(1.0f);
-
-		processInput(window);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -350,6 +350,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 //
 //	lastX = xpos;
 //	lastY = ypos;
+//
+//	view = camera.RotateAroundPoint(selectedBallPos, xOffset, glm::vec3(0.0f, 1.0f, 0.0f));
 //
 //	camera.ProcessMouseMovement(xOffset, yOffset);
 
