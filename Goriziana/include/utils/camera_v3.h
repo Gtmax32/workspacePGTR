@@ -35,7 +35,7 @@ const float SPEED       =  5.0f;
 const float SENSITIVITY =  0.1f;
 const float ZOOM        =  45.0f;
 
-const vec3 OFFSET(-3.0f, 0.0f, 0.0f);
+const vec3 OFFSET(-2.5f, 0.0f, 0.0f);
 /********** classe CAMERA **********/
 class Camera {
 public:
@@ -156,23 +156,22 @@ public:
 	mat4 RotateAroundPoint(vec3 objectPoint, GLfloat angle, vec3 axis){
 		GLfloat velocity = this->MovementSpeed * angle;
 
-		vec3 oldPosition = this->Position;
-
 		vec3 direction = normalize(this->Position - objectPoint);
-		vec3 newDirection = normalize(rotateY(direction, velocity));
+		//vec3 newDirection = normalize(rotateY(direction, velocity));
 
-		mat4 matrix = translate(mat4(1.0f), -newDirection);
-		matrix = rotate(matrix, velocity, axis);
-		matrix = translate(matrix, direction);
+		mat4 matrix = translate(mat4(1.0f), objectPoint);
+		//matrix = rotate(matrix, velocity, axis);
+		//matrix = translate(matrix, direction);
 
-		this->Position = matrix * vec4(oldPosition, 1.0f);
-		//this->Front = -direction;
+		//this->Position = matrix * vec4(oldPosition, 1.0f);
+		this->Position = matrix * vec4(1.0f);
+		this->Front = -direction;
 
 		//this->Yaw += velocity;
 
-		std::cout << to_string(this->Position) << std::endl;
+		//std::cout << this->Position.x << "," << this->Position.y << "," << this->Position.z <<  std::endl;
 
-		return lookAt(objectPoint, objectPoint + this->Front, this->Up);
+		return lookAt(objectPoint, this->Front, this->Up);
 	}
 
 	void setObjectPos(vec3 objPos) {
