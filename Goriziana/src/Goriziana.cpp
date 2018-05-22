@@ -44,8 +44,9 @@ using namespace std;
 const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 // Camera
-Camera camera(-7.0f, 15.0f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+Camera camera(-8.0f, 8.0f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 //Camera camera(-8.0f, 9.0f, -2.2f, 6.0f, 1.0f, 0.0f);
+const GLfloat ROTATION_ANGLE = 0.001f;
 
 // Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float)SCR_WIDTH / 2.0f;
@@ -287,15 +288,13 @@ int main(){//INIZIALIZZO GLFW
 //
 //		poolSimulation.dynamicsWorld->stepSimulation((deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
 
-		view = camera.lookAtObject();
+		view = camera.GetViewMatrix();
 
 		draw_model_notexture(shaderNoTexture, modelBall);
 
 		draw_model_texture(shaderTexture, modelPlane, textureFloor, modelTable, modelPin);
 
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
-
-		model = glm::mat4(1.0f);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -324,10 +323,10 @@ void processInput(GLFWwindow *window){
 		camera.ProcessKeyboard(BACKWARD, deltaTime);
 
 	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		view = camera.RotateAroundPoint(selectedBallPos, -deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+		view = camera.RotateAroundPoint(selectedBallPos, -ROTATION_ANGLE, glm::vec3(0.0f, 1.0f, 0.0f));
 
 	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		view = camera.RotateAroundPoint(selectedBallPos, deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+		view = camera.RotateAroundPoint(selectedBallPos, ROTATION_ANGLE, glm::vec3(0.0f, 1.0f, 0.0f));
 //
 //	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 //		throw_ball(bodyBallWhite);
@@ -678,7 +677,7 @@ void draw_skybox(Shader &shaderSB, Model &box, GLuint texture){
 
 	shaderSB.setMat4("projectionMatrix",projection);
 	shaderSB.setMat4("viewMatrix",view);
-	shaderSB.setInt("tCube",0);
+	shaderSB.setInt("skyboxTexture",0);
 
 	box.Draw(shaderSB);
 

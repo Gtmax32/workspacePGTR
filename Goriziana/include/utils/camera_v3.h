@@ -14,6 +14,8 @@ Classe Camera
 // GLM viene utilizzata per creare la matrice di vista e per gestire le trasformazioni di camera
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 using namespace glm;
 
@@ -29,7 +31,7 @@ enum Camera_Movement {
 const float YAW         = -90.0f;
 const float PITCH       = -90.0f;
 // Parametri per gestione interazione con il mouse
-const float SPEED       =  100.0f;
+const float SPEED       =  5.0f;
 const float SENSITIVITY =  0.1f;
 const float ZOOM        =  45.0f;
 
@@ -157,18 +159,20 @@ public:
 		vec3 oldPosition = this->Position;
 
 		vec3 direction = normalize(this->Position - objectPoint);
+		vec3 newDirection = normalize(rotateY(direction, velocity));
 
-		mat4 translation = translate(mat4(1.0f), direction);
-		mat4 rotation = rotate(translation, velocity, axis);
-		mat4 complete = translate(rotation, -direction);
+		mat4 matrix = translate(mat4(1.0f), -newDirection);
+		matrix = rotate(matrix, velocity, axis);
+		matrix = translate(matrix, direction);
 
-		this->Position = complete * vec4(oldPosition, 1.0f);
+		this->Position = matrix * vec4(oldPosition, 1.0f);
+		//this->Front = -direction;
 
-		this->Yaw += velocity;
+		//this->Yaw += velocity;
 
-		this->updateCameraVectors();
+		std::cout << to_string(this->Position) << std::endl;
 
-		return lookAt(objectPoint + OFFSET, objectPoint + this->Front, this->Up);
+		return lookAt(objectPoint, objectPoint + this->Front, this->Up);
 	}
 
 	void setObjectPos(vec3 objPos) {
