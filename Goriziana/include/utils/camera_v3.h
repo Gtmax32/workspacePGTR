@@ -156,22 +156,18 @@ public:
 	mat4 RotateAroundPoint(vec3 objectPoint, GLfloat angle, vec3 axis){
 		GLfloat velocity = this->MovementSpeed * angle;
 
-		vec3 direction = normalize(this->Position - objectPoint);
-		//vec3 newDirection = normalize(rotateY(direction, velocity));
+		vec3 direction = objectPoint - this->Position;
 
-		mat4 matrix = translate(mat4(1.0f), objectPoint);
-		//matrix = rotate(matrix, velocity, axis);
-		//matrix = translate(matrix, direction);
+		mat4 matrix = translate(mat4(1.0f), direction);
+		matrix = rotate(matrix, velocity, axis);
+		matrix = translate(matrix, -direction);
 
-		//this->Position = matrix * vec4(oldPosition, 1.0f);
-		this->Position = matrix * vec4(1.0f);
-		this->Front = -direction;
-
-		//this->Yaw += velocity;
+		this->Position = matrix * vec4(this->Position, 1.0f);
+		//this->Front = direction;
 
 		//std::cout << this->Position.x << "," << this->Position.y << "," << this->Position.z <<  std::endl;
 
-		return lookAt(objectPoint, this->Front, this->Up);
+		return lookAt(this->Position, direction, this->Up);
 	}
 
 	void setObjectPos(vec3 objPos) {

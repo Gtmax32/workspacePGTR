@@ -46,7 +46,7 @@ const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 // Camera
 Camera camera(-8.0f, 8.0f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 //Camera camera(-8.0f, 9.0f, -2.2f, 6.0f, 1.0f, 0.0f);
-const GLfloat ROTATION_ANGLE = 0.005f;
+const GLfloat ROTATION_ANGLE = 0.001f;
 
 // Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float)SCR_WIDTH / 2.0f;
