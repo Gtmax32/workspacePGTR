@@ -158,16 +158,19 @@ public:
 
 		vec3 direction = objectPoint - this->Position;
 
+		std::cout << "Distance: " << distance(this->Position,vec3(0.0f, 0.0f, 0.0f)) << std::endl;
+
 		mat4 matrix = translate(mat4(1.0f), direction);
 		matrix = rotate(matrix, velocity, axis);
 		matrix = translate(matrix, -direction);
 
 		this->Position = matrix * vec4(this->Position, 1.0f);
-		//this->Front = direction;
+		//this->Front = normalize(direction);
 
 		//std::cout << this->Position.x << "," << this->Position.y << "," << this->Position.z <<  std::endl;
+		//std::cout << "Distance: " << distance(this->Position,objectPoint) << std::endl;
 
-		return lookAt(this->Position, direction, this->Up);
+		return matrix * lookAt(this->Position, this->Position + this->Front, this->Up);
 	}
 
 	void setObjectPos(vec3 objPos) {
