@@ -28,11 +28,13 @@ enum Camera_Movement {
 };
 
 // Impostazioni di default di camera
+// Euler angle, rotation around y-axis
 const float YAW         = -90.0f;
+// Euler angle, rotation around x-axis
 const float PITCH       = -90.0f;
 // Parametri per gestione interazione con il mouse
 const float SPEED       =  5.0f;
-const float SENSITIVITY =  0.1f;
+const float SENSITIVITY =  0.01f;
 const float ZOOM        =  45.0f;
 
 const vec3 OFFSET(-2.5f, 0.0f, 0.0f);
@@ -154,11 +156,11 @@ public:
 
 	// Ruota la camera attorno ad un punto nello spazio
 	mat4 RotateAroundPoint(vec3 objectPoint, GLfloat angle, vec3 axis){
-		GLfloat velocity = this->MovementSpeed * angle;
+		GLfloat velocity = this->MouseSensitivity * (-angle);
 
 		vec3 direction = objectPoint - vec3(0.0f, 0.0f, 0.0f);
 
-		std::cout << "Distance: " << distance(this->Position,objectPoint) << std::endl;
+		//std::cout << "Distance: " << distance(this->Position,objectPoint) << std::endl;
 
 		mat4 matrix = translate(mat4(1.0f), direction);
 		matrix = rotate(matrix, velocity, axis);
@@ -168,7 +170,6 @@ public:
 		this->Front = matrix * vec4(this->Front, 0.0f);
 
 		//std::cout << this->Position.x << "," << this->Position.y << "," << this->Position.z <<  std::endl;
-		//std::cout << "Distance: " << distance(this->Position,objectPoint) << std::endl;
 
 		return lookAt(this->Position, this->Position + this->Front, this->Up);
 	}

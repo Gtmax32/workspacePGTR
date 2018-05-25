@@ -43,10 +43,10 @@ using namespace std;
 // Dimensioni della finestra dell'applicazione
 const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
-// Camera
-Camera camera(-8.0f, 8.0f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+// Camera     posx   posy  posz   upx   upy   upz   yaw   pitch
+Camera camera(-8.5f, 7.6f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 //Camera camera(-8.0f, 9.0f, -2.2f, 6.0f, 1.0f, 0.0f);
-const GLfloat ROTATION_ANGLE = 0.005f;
+const GLfloat ROTATION_ANGLE = 5.0f;
 
 // Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float)SCR_WIDTH / 2.0f;
@@ -85,9 +85,9 @@ glm::vec3 sphereSize = glm::vec3(0.5f, 0.5f, 0.5f);
 
 //Posizione delle biglie del gioco
 glm::vec3 poolBallPos[] = {
-		glm::vec3(-5.5f, 8.0f, -2.2f), // biglia bianca
-		glm::vec3(5.5f, 8.0f, 0.0f), // biglia rossa
-		glm::vec3(-5.5f, 8.0f, 2.2f) // biglia gialla
+		glm::vec3(-5.5f, 7.0f, -2.2f), // biglia bianca
+		glm::vec3(5.5f, 7.8f, 0.0f), // biglia rossa
+		glm::vec3(-5.5f, 7.8f, 2.2f) // biglia gialla
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -156,7 +156,7 @@ int main(){//INIZIALIZZO GLFW
 	//glfwSetScrollCallback(window, scroll_callback);
 	//Per avere una maggior capacità di movimento, impostare l'ultimo parametro a GLFW_CURSOR_DISABLED.
 	//Per visualizzare il puntatore, impostare l'ultimo parametro a GLFW_CURSOR_HIDDEN
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// GLAD cerca di caricare il contesto impostato da GLFW
 	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
@@ -167,7 +167,8 @@ int main(){//INIZIALIZZO GLFW
 	//SETTO IL DEPTH TEST
 	glEnable(GL_DEPTH_TEST);
 
-	glfwSetCursorPos(window, (double)(SCR_WIDTH/2), (double)(SCR_HEIGHT/2));
+	//SETTO IL CURSORE AL CENTRO DELLA SCHERMATA
+	//glfwSetCursorPos(window, (double)(SCR_WIDTH/2), (double)(SCR_HEIGHT/2));
 
 	//VETTORE UTILIZZATO PER CARICARE LA CUBEMAP
 	vector<string> faces = {
@@ -316,17 +317,17 @@ void processInput(GLFWwindow *window){
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-
-	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
-
-	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		view = camera.RotateAroundPoint(selectedBallPos, -ROTATION_ANGLE, glm::vec3(0.0f, 1.0f, 0.0f));
-
-	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		view = camera.RotateAroundPoint(selectedBallPos, ROTATION_ANGLE, glm::vec3(0.0f, 1.0f, 0.0f));
+//	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+//		camera.ProcessKeyboard(FORWARD, deltaTime);
+//
+//	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+//		camera.ProcessKeyboard(BACKWARD, deltaTime);
+//
+//	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+//		view = camera.RotateAroundPoint(selectedBallPos, -ROTATION_ANGLE, glm::vec3(0.0f, 1.0f, 0.0f));
+//
+//	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+//		view = camera.RotateAroundPoint(selectedBallPos, ROTATION_ANGLE, glm::vec3(0.0f, 1.0f, 0.0f));
 //
 //	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 //		throw_ball(bodyBallWhite);
@@ -337,22 +338,22 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
-//	if(firstMouse){
-//		lastX = xpos;
-//		lastY = ypos;
-//
-//		firstMouse = false;
-//	}
-//
-//	GLfloat xOffset = xpos - lastX;
-//	GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
-//
-//	lastX = xpos;
-//	lastY = ypos;
-//
-//	view = camera.RotateAroundPoint(selectedBallPos, xOffset, glm::vec3(0.0f, 1.0f, 0.0f));
-//
-//	camera.ProcessMouseMovement(xOffset, yOffset);
+	if(firstMouse){
+		lastX = xpos;
+		lastY = ypos;
+
+		firstMouse = false;
+	}
+
+	GLfloat xOffset = xpos - lastX;
+	//GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
+
+	lastX = xpos;
+	//lastY = ypos;
+
+	view = camera.RotateAroundPoint(selectedBallPos, xOffset, glm::vec3(0.0f, 1.0f, 0.0f));
+
+	//camera.ProcessMouseMovement(xOffset, yOffset);
 
 	mouseX = xpos;
 	mouseY = ypos;

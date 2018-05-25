@@ -17,55 +17,43 @@ Classe Shader v2
 #include <sstream>
 #include <iostream>
 
+using namespace std;
+
 /********** classe SHADER **********/
 class Shader{
 
 private:
-	std::string shaderName;
+	string shaderName;
 	
 public:
     GLuint ID;
     // Costruttore della classe Shader
     Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr){
-		// Passo 0: salvo il nome dello shader, in modo da avere informazioni più dettagliate negli errori
+		// Passo 0: salvo il nome dello shader, in modo da avere informazioni piu' dettagliate negli errori
 		char* tmp = (char*) calloc(50, sizeof(char));
 		
 		strcpy(tmp, vertexPath);		
-		//shaderName = strtok(tmp, "/");
-		shaderName = strtok(tmp, ".");
-		
-		/*strcpy(tmp, fragmentPath);
-		fragmentShaderName = strtok(tmp, "/");
-		fragmentShaderName = strtok(nullptr, ".");
-		
-		std::cout << "VS: " << vertexShaderName << "\nFS: " << fragmentShaderName << std::endl;
-		
-		if(geometryPath != nullptr) {
-			strcpy(tmp, geometryPath);
-			geometryShaderName = strtok(tmp, "/");
-			geometryShaderName = strtok(nullptr, "/");
-			
-			//std::cout << "GS: " << geometryShaderName << std::endl;
-		}*/
-		
+		shaderName = strtok(tmp, "/");
+		shaderName = strtok(nullptr, ".");
+
 		// Passo 1: carico i sorgenti degli shader dal path passato come parametro
-        std::string vertexCode;
-        std::string fragmentCode;
-        std::string geometryCode;
-        std::ifstream vShaderFile;
-        std::ifstream fShaderFile;
-        std::ifstream gShaderFile;
+        string vertexCode;
+        string fragmentCode;
+        string geometryCode;
+        ifstream vShaderFile;
+        ifstream fShaderFile;
+        ifstream gShaderFile;
         
 		// Leggo il contenuto dei file, gestisco errori con eccezioni
-        vShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
-        fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
-        gShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+        vShaderFile.exceptions (ifstream::failbit | ifstream::badbit);
+        fShaderFile.exceptions (ifstream::failbit | ifstream::badbit);
+        gShaderFile.exceptions (ifstream::failbit | ifstream::badbit);
         
 		try {
             // Apro i file
             vShaderFile.open(vertexPath);
             fShaderFile.open(fragmentPath);
-            std::stringstream vShaderStream, fShaderStream;
+            stringstream vShaderStream, fShaderStream;
             // Leggo i file mediante gli stream
             vShaderStream << vShaderFile.rdbuf();
             fShaderStream << fShaderFile.rdbuf();		
@@ -78,14 +66,14 @@ public:
             // Se è presente il GS, passo alla lettura del file
             if(geometryPath != nullptr) {
                 gShaderFile.open(geometryPath);
-                std::stringstream gShaderStream;
+                stringstream gShaderStream;
                 gShaderStream << gShaderFile.rdbuf();
                 gShaderFile.close();
                 geometryCode = gShaderStream.str();
             }
         }
-        catch (std::ifstream::failure & e){
-            std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+        catch (ifstream::failure & e){
+            cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << endl;
         }
 		
         // converto le stringhe in puntatori a char
@@ -146,57 +134,57 @@ public:
 	}
 	
     // Funzioni Uniform
-    void setBool(const std::string &name, bool value) const {         
+    void setBool(const string &name, bool value) const {
         glUniform1i(glGetUniformLocation(this->ID, name.c_str()), (int)value); 
     }
     
-    void setInt(const std::string &name, int value) const { 
+    void setInt(const string &name, int value) const {
         glUniform1i(glGetUniformLocation(this->ID, name.c_str()), value); 
     }
     
-    void setFloat(const std::string &name, float value) const { 
+    void setFloat(const string &name, float value) const {
         glUniform1f(glGetUniformLocation(this->ID, name.c_str()), value); 
     }
     
-    void setVec2(const std::string &name, const glm::vec2 &value) const { 
+    void setVec2(const string &name, const glm::vec2 &value) const {
         glUniform2fv(glGetUniformLocation(this->ID, name.c_str()), 1, &value[0]); 
     }
 	
-    void setVec2(const std::string &name, float x, float y) const { 
+    void setVec2(const string &name, float x, float y) const {
         glUniform2f(glGetUniformLocation(this->ID, name.c_str()), x, y); 
     }
     
-    void setVec3(const std::string &name, const glm::vec3 &value) const { 
+    void setVec3(const string &name, const glm::vec3 &value) const {
         glUniform3fv(glGetUniformLocation(this->ID, name.c_str()), 1, &value[0]); 
     }
 	
-    void setVec3(const std::string &name, float x, float y, float z) const { 
+    void setVec3(const string &name, float x, float y, float z) const {
         glUniform3f(glGetUniformLocation(this->ID, name.c_str()), x, y, z); 
     }
     
-    void setVec4(const std::string &name, const glm::vec4 &value) const { 
+    void setVec4(const string &name, const glm::vec4 &value) const {
         glUniform4fv(glGetUniformLocation(this->ID, name.c_str()), 1, &value[0]); 
     }
 	
-    void setVec4(const std::string &name, float x, float y, float z, float w) { 
+    void setVec4(const string &name, float x, float y, float z, float w) {
         glUniform4f(glGetUniformLocation(this->ID, name.c_str()), x, y, z, w); 
     }
     
-    void setMat2(const std::string &name, const glm::mat2 &mat) const {
+    void setMat2(const string &name, const glm::mat2 &mat) const {
         glUniformMatrix2fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
     
-    void setMat3(const std::string &name, const glm::mat3 &mat) const {
+    void setMat3(const string &name, const glm::mat3 &mat) const {
         glUniformMatrix3fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
     
-    void setMat4(const std::string &name, const glm::mat4 &mat) const {
+    void setMat4(const string &name, const glm::mat4 &mat) const {
         glUniformMatrix4fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
 private:
     // Funzione utilizzata per controllare eventuali errori nella compilazione di VS e FS
-    void checkCompileErrors(GLuint shader, std::string type) {
+    void checkCompileErrors(GLuint shader, string type) {
         GLint success;
         GLchar infoLog[1024];
         
@@ -205,7 +193,7 @@ private:
             
 			if(!success) {
                 glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-                std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << " in SHADER: " << shaderName << ".\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << " in SHADER: " << shaderName << ".\n" << infoLog << "\n -- --------------------------------------------------- -- " << endl;
             }
         }
         else {
@@ -213,7 +201,7 @@ private:
             
 			if(!success) {
                 glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-                std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << " in SHADER: " << shaderName << ".\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << " in SHADER: " << shaderName << ".\n" << infoLog << "\n -- --------------------------------------------------- -- " << endl;
             }
         }
     }
