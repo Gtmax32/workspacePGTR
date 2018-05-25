@@ -12,7 +12,7 @@ BulletDebugDrawer::BulletDebugDrawer(){
 
 BulletDebugDrawer::~BulletDebugDrawer(){}
 
-void BulletDebugDrawer::SetMatrices(Shader *shader, glm::mat4 viewMatrix, glm::mat4 projectionMatrix, glm::mat4 modelMatrix){
+void BulletDebugDrawer::SetMatrices(Shader *shader, glm::mat4 projectionMatrix, glm::mat4 viewMatrix, glm::mat4 modelMatrix){
 	shader->Use();
 
 	shader->setMat4("projectionMatrix", projectionMatrix);
