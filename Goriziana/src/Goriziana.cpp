@@ -250,9 +250,6 @@ int main(){
 	// imposto il delta di tempo massimo per aggiornare la simulazione fisica
 	GLfloat maxSecPerFrame = 1.0f / 60.0f;
 
-	btTransform transform;
-	btVector3 origin;
-
 	debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 	poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
 
@@ -296,6 +293,8 @@ int main(){
 		draw_model_texture(shaderTexture, modelPlane, bodyPlane, textureFloor, modelTable, modelPin);
 
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
+
+		model = mat4(1.0f);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -362,7 +361,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
 		cout << "Left button pressed!" << endl;
-//		throw_ball(bodyBallWhite);
+		throw_ball(bodyBallWhite);
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
@@ -375,7 +374,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 }
 
 void throw_ball(btRigidBody* ball){
-	//cout << "Space pressed..." << endl;
 	glm::mat4 worldToScreen = glm::inverse(projection * view);
 
 	GLfloat shootInitialSpeed = 15.0f;
@@ -583,9 +581,6 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 //	glm::mat4 model(1.0f);
 //	glm::mat4 normal(1.0f);
 
-	btTransform transform;
-	GLfloat matrix[16];
-
 	//RENDERIZZO IL TAVOLO
 	shaderT.Use();
 
@@ -643,26 +638,26 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 	//RENDERIZZO IL PIANO
 //	bodyPlane->getMotionState()->getWorldTransform(transform);
 //	transform.getOpenGLMatrix(matrix);
-
-	shaderT.setInt("tex",0);
-	shaderT.setFloat("repeat",2.0f);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	model = glm::mat4(1.0f);
-	normal = glm::mat4(1.0f);
-
-	//model = glm::translate(model, poolPlanePos);
-	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-	normal = glm::inverseTranspose(glm::mat3(view*model));
-
-	shaderT.setMat4("modelMatrix", model);//model
-	shaderT.setMat3("normalMatrix",normal);
-
-	plane.Draw(shaderT);
+//
+//	shaderT.setInt("tex",0);
+//	shaderT.setFloat("repeat",2.0f);
+//
+//	glActiveTexture(GL_TEXTURE0);
+//	glBindTexture(GL_TEXTURE_2D, texture);
+//
+//	model = glm::mat4(1.0f);
+//	normal = glm::mat4(1.0f);
+//
+//	//model = glm::translate(model, poolPlanePos);
+//	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+//
+//	model = glm::scale(model, glm::vec3(500.0f, 500.0f, 1.0f));
+//	normal = glm::inverseTranspose(glm::mat3(view*model));
+//
+//	shaderT.setMat4("modelMatrix", model);//model
+//	shaderT.setMat3("normalMatrix",normal);
+//
+//	plane.Draw(shaderT);
 }
 
 // Imposto lo shader e renderizzo la Cubemap
