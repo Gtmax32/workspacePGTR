@@ -156,7 +156,7 @@ int main(){
 	//glfwSetScrollCallback(window, scroll_callback);
 	//Per avere una maggior capacità di movimento, impostare l'ultimo parametro a GLFW_CURSOR_DISABLED.
 	//Per visualizzare il puntatore, impostare l'ultimo parametro a GLFW_CURSOR_HIDDEN
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
 	// GLAD cerca di caricare il contesto impostato da GLFW
 	if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
@@ -168,7 +168,7 @@ int main(){
 	glEnable(GL_DEPTH_TEST);
 
 	//SETTO IL CURSORE AL CENTRO DELLA SCHERMATA
-	//glfwSetCursorPos(window, (double)(SCR_WIDTH/2), (double)(SCR_HEIGHT/2));
+	glfwSetCursorPos(window, (double)(SCR_WIDTH/2), (double)(SCR_HEIGHT/2));
 
 	//VETTORE UTILIZZATO PER CARICARE LA CUBEMAP
 	vector<string> faces = {
@@ -348,7 +348,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 	//GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
 
 	lastX = xpos;
-	//lastY = ypos;
+	lastY = ypos;
 
 	view = camera.RotateAroundPoint(selectedBallPos, xOffset, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -374,30 +374,29 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 }
 
 void throw_ball(btRigidBody* ball){
-	glm::mat4 worldToScreen = glm::inverse(projection * view);
+	glm::mat4 screenToWorld = glm::inverse(projection * view);
 
 	GLfloat shootInitialSpeed = 15.0f;
 
 	GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
 			y = -(mouseY / SCR_HEIGHT) * 2 + 1;
 
-	GLfloat matrix[16];
-
 	btVector3 impulse, origin;
 	btTransform transform;
 
 	glm::vec4 ballPos;
 
-	ball->getMotionState()->getWorldTransform(transform);
-	transform.getOpenGLMatrix(matrix);
+	//ball->getMotionState()->getWorldTransform(transform);
 
-	origin = transform.getOrigin();
+	//origin = transform.getOrigin();
 
-	ballPos = glm::vec4(origin.getX(), origin.getY(), origin.getZ(), 1.0f);
+	//ballPos = glm::vec4(origin.getX(), origin.getY(), origin.getZ(), 1.0f);
 
 	glm::vec4 mousePos = glm::vec4(x, y, 1.0f, 1.0f);
 
-	glm::vec4 direction = glm::normalize(worldToScreen * mousePos) * shootInitialSpeed;
+	glm::vec4 direction = glm::normalize(screenToWorld * mousePos);
+	direction *= shootInitialSpeed;
+
 	//glm::vec3 direction = glm::normalize(mousePos - ballPos) * shootInitialSpeed;
 
 	impulse = btVector3(direction.x, direction.y, direction.z);
@@ -405,10 +404,10 @@ void throw_ball(btRigidBody* ball){
 	cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
 	//cout << "WB pos: " << ballPos.x << " - " << ballPos.y << " - " << ballPos.z << endl;
 
-	ball->applyCentralImpulse(impulse);
-
 	//Lo uso per evitare che la biglia salti
 	ball->setLinearFactor(btVector3(1, 0, 1));
+
+	ball->applyCentralImpulse(impulse);
 
 	//cout << "\nX: " << x << " - Y: " << y << "\nBall X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << endl;
 }
