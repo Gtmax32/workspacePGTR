@@ -2,6 +2,7 @@
 Classe Camera
 - crea sistema di riferimento della camera
 - gestisce i movimenti di camera (FPS-style) alla pressione dei tasti WASD e al movimento del mouse
+- permette la rotazione intorno ad un oggetto fornendo una camera in terza persona
 
 */
 #ifndef CAMERA_H
@@ -37,7 +38,7 @@ const float SPEED       =  5.0f;
 const float SENSITIVITY =  0.01f;
 const float ZOOM        =  45.0f;
 
-const vec3 OFFSET(-2.5f, 0.0f, 0.0f);
+const vec3 OFFSET(2.0f, 0.0f, 2.0f);
 /********** classe CAMERA **********/
 class Camera {
 public:
@@ -84,10 +85,6 @@ public:
     // Restituisce la view matrix calcolata usando gli angeli di Eulero e la LookAt Matrix
     mat4 GetViewMatrix() {
         return lookAt(this->Position, this->Position + this->Front, this->Up);
-    }
-
-    mat4 lookAtObject(){
-    	return lookAt(this->selectedBallPos + OFFSET, this->selectedBallPos + this->Front, this->Up);
     }
 
     // Aggiorna la posizione della camera in base alla pressione dei tasti W,A,S e D
@@ -158,7 +155,7 @@ public:
 	mat4 RotateAroundPoint(vec3 objectPoint, GLfloat angle, vec3 axis){
 		GLfloat velocity = this->MouseSensitivity * (-angle);
 
-		vec3 direction = objectPoint - vec3(0.0f, 0.0f, 0.0f);
+		vec3 direction = this->selectedBallPos - vec3(0.0f);
 
 		//std::cout << "Distance: " << distance(this->Position,objectPoint) << std::endl;
 
@@ -180,6 +177,18 @@ public:
 
 	vec3 getObjectPos() {
 		return this->selectedBallPos;
+	}
+
+	mat4 MoveCamera(vec3 newPosition){
+		vec3 direction = (newPosition + OFFSET) - this->Position;
+
+		mat4 matrix = translate(mat4(1.0f), direction);
+
+		this->Position = matrix * vec4(this->Position, 1.0f);
+
+		this->Front = matrix * vec4(this->Front, 0.0f);
+
+		return lookAt(this->Position, this->Position + this->Front, this->Up);
 	}
 
 private:

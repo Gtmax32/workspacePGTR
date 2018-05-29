@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <vector>
 // THIS IS OPTIONAL AND NOT REQUIRED, ONLY USE THIS IF YOU DON'T WANT GLAD TO INCLUDE windows.h
 // GLAD will include windows.h for APIENTRY if it was not previously defined.
@@ -55,6 +57,7 @@ GLfloat firstMouse = true;
 double mouseX, mouseY;
 
 // Deltatime per uniformare la velocità di movimento
+GLfloat currentFrame = 0.0f;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
@@ -105,8 +108,7 @@ GLuint loadCubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
 void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
-//void draw_model_notexture(Shader &shaderNT, Model &ball);
-//void draw_model_texture(Shader &shaderT, Model &plane, GLuint texture, Model &table, Model &pin);
+bool checkIdleBall(btVector3 linearVelocity);
 
 // Funzioni per gestire il gioco
 void throw_ball(btRigidBody* ball);
@@ -121,6 +123,8 @@ glm::mat4 projection(1.0f);
 glm::mat4 view(1.0f);
 glm::mat4 model(1.0f);
 glm::mat3 normal(1.0f);
+
+bool checkShoot = false;
 
 int main(){
 	//INIZIALIZZO GLFW
@@ -198,7 +202,7 @@ int main(){
 	glm::vec3 bodyPlaneSize = glm::vec3(10.0f, 0.1f, 10.0f);
 	glm::vec3 bodyPlaneRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	btRigidBody* bodyPlane = poolSimulation.createRigidBody(0, poolPlanePos, bodyPlaneSize, bodyPlaneRotation, 0.0, 0.3, 0.3);
+	btRigidBody* bodyPlane = poolSimulation.createRigidBody(0, poolPlanePos, bodyPlaneSize, bodyPlaneRotation, 0.0, 0.8, 0.3);
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AL TAVOLO
 	glm::vec3 bodyTablePos = glm::vec3(0.0f, 6.48f, 0.0f);
@@ -263,9 +267,18 @@ int main(){
 	selectedBallPos = poolBallPos[0];
 	camera.setObjectPos(selectedBallPos);
 
+	// File di log inserito per debuggare la biglia
+	//ofstream out("log.txt");
+
+	//cout << "LinearSleepThreshold: " << bodyBallWhite->getLinearSleepingThreshold() << "\nAngularSleepThreshold: " << bodyBallWhite->getAngularSleepingThreshold() << endl;
+
+	btTransform transform;
+	btVector3 linearVelocity, angularVelocity, origin;
+	glm::vec3 position;
+
 	//AVVIO IL RENDER LOOP
 	while(!glfwWindowShouldClose(window)){
-		GLfloat currentFrame = glfwGetTime();
+		currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
@@ -273,13 +286,6 @@ int main(){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		processInput(window);
-
-		// Codice per la versione camera.h
-//		bodyBallWhite->getMotionState()->getWorldTransform(transform);
-//		origin = transform.getOrigin();
-//
-//		selectedBallPos = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
-//		camera.setObjectPos(selectedBallPos);
 
 		view = camera.GetViewMatrix();
 
@@ -296,6 +302,26 @@ int main(){
 
 		model = mat4(1.0f);
 
+		linearVelocity = bodyBallWhite->getLinearVelocity();
+		//angularVelocity = bodyBallWhite->getAngularVelocity();
+
+//		out << currentFrame << endl;
+//		out << "LinearVelocity:\n( " << linearVelocity.getX() << ", " << linearVelocity.getY() << ", " << linearVelocity.getZ() << " )\n" << endl;
+//		out << "AngularVelocity:\n( " << angularVelocity.getX() << ", " << angularVelocity.getY() << ", " << angularVelocity.getZ() << " )\n" << endl;
+
+		if(checkIdleBall(linearVelocity) && checkShoot){
+			bodyBallWhite->getMotionState()->getWorldTransform(transform);
+			origin = transform.getOrigin();
+
+			position = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
+
+			camera.MoveCamera(position);
+			//view = camera.RotateAroundPoint(position, -180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+			camera.setObjectPos(position);
+
+			checkShoot = false;
+		}
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -306,6 +332,9 @@ int main(){
 	shaderSkybox.Delete();
 
 	poolSimulation.Clear();
+
+	// Chiudo il file di log
+	//out.close();
 
 	glfwTerminate();
 
@@ -360,7 +389,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
-		cout << "Left button pressed!" << endl;
+		cout << "Left button pressed at " << currentFrame << endl;
 		throw_ball(bodyBallWhite);
 	}
 
@@ -376,7 +405,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 void throw_ball(btRigidBody* ball){
 	glm::mat4 screenToWorld = glm::inverse(projection * view);
 
-	GLfloat shootInitialSpeed = 15.0f;
+	GLfloat shootInitialSpeed = 1.0f;
 
 	GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
 			y = -(mouseY / SCR_HEIGHT) * 2 + 1;
@@ -402,14 +431,14 @@ void throw_ball(btRigidBody* ball){
 	impulse = btVector3(direction.x, direction.y, direction.z);
 
 	cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
-	//cout << "WB pos: " << ballPos.x << " - " << ballPos.y << " - " << ballPos.z << endl;
-
 	//Lo uso per evitare che la biglia salti
 	ball->setLinearFactor(btVector3(1, 0, 1));
 
 	ball->applyCentralImpulse(impulse);
 
 	//cout << "\nX: " << x << " - Y: " << y << "\nBall X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << endl;
+
+	checkShoot = true;
 }
 
 // Carico un'immagine e creo texture OpengGL
@@ -678,5 +707,11 @@ void draw_skybox(Shader &shaderSB, Model &box, GLuint texture){
 	glDepthFunc(GL_LESS);
 }
 
+bool checkIdleBall(btVector3 linearVelocity){
+	if(abs(linearVelocity.getX()) < 0.01 && abs(linearVelocity.getY()) < 0.01 && abs(linearVelocity.getZ()) < 0.01)
+		return true;
+
+	return false;
+}
 
 
