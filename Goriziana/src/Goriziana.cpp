@@ -302,14 +302,14 @@ int main(){
 
 		model = mat4(1.0f);
 
-		linearVelocity = bodyBallWhite->getLinearVelocity();
+		//linearVelocity = bodyBallWhite->getLinearVelocity();
 		//angularVelocity = bodyBallWhite->getAngularVelocity();
 
 //		out << currentFrame << endl;
 //		out << "LinearVelocity:\n( " << linearVelocity.getX() << ", " << linearVelocity.getY() << ", " << linearVelocity.getZ() << " )\n" << endl;
 //		out << "AngularVelocity:\n( " << angularVelocity.getX() << ", " << angularVelocity.getY() << ", " << angularVelocity.getZ() << " )\n" << endl;
 
-		if(checkIdleBall(linearVelocity) && checkShoot){
+		/*if(checkIdleBall(linearVelocity) && checkShoot){
 			bodyBallWhite->getMotionState()->getWorldTransform(transform);
 			origin = transform.getOrigin();
 
@@ -320,7 +320,7 @@ int main(){
 			camera.setObjectPos(position);
 
 			checkShoot = false;
-		}
+		}*/
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
