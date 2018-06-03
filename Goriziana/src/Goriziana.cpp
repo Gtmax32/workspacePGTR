@@ -405,7 +405,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 void throw_ball(btRigidBody* ball){
 	glm::mat4 screenToWorld = glm::inverse(projection * view);
 
-	GLfloat shootInitialSpeed = 1.0f;
+	GLfloat shootInitialSpeed = 2.0f;
 
 	GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
 			y = -(mouseY / SCR_HEIGHT) * 2 + 1;
@@ -423,14 +423,18 @@ void throw_ball(btRigidBody* ball){
 
 	glm::vec4 mousePos = glm::vec4(x, y, 1.0f, 1.0f);
 
-	glm::vec4 direction = glm::normalize(screenToWorld * mousePos);
-	direction *= shootInitialSpeed;
+	cout << "MousePos: " << mousePos.x << " - " << mousePos.y << " - " << mousePos.z << endl;
+
+	glm::vec4 direction = glm::normalize(screenToWorld * mousePos) * shootInitialSpeed;
+
+	cout << "Direction: " << direction.x << " - " << direction.y << " - " << direction.z << endl;
 
 	//glm::vec3 direction = glm::normalize(mousePos - ballPos) * shootInitialSpeed;
 
 	impulse = btVector3(direction.x, direction.y, direction.z);
 
 	cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
+
 	//Lo uso per evitare che la biglia salti
 	ball->setLinearFactor(btVector3(1, 0, 1));
 
@@ -438,7 +442,7 @@ void throw_ball(btRigidBody* ball){
 
 	//cout << "\nX: " << x << " - Y: " << y << "\nBall X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << endl;
 
-	checkShoot = true;
+	//checkShoot = true;
 }
 
 // Carico un'immagine e creo texture OpengGL
