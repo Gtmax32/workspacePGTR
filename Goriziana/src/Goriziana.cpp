@@ -88,9 +88,9 @@ glm::vec3 sphereSize = glm::vec3(0.5f, 0.5f, 0.5f);
 
 //Posizione delle biglie del gioco
 glm::vec3 poolBallPos[] = {
-		glm::vec3(-5.5f, 7.8f, -2.2f), // biglia bianca
-		glm::vec3(5.5f, 7.8f, 0.0f), // biglia rossa
-		glm::vec3(-5.5f, 7.8f, 2.2f) // biglia gialla
+		glm::vec3(-5.5f, 7.081f, -2.2f), // biglia bianca
+		glm::vec3(5.5f, 7.081f, 0.0f), // biglia rossa
+		glm::vec3(-5.5f, 7.081f, 2.2f) // biglia gialla
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -245,6 +245,11 @@ int main(){
 	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
 	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
 
+	//Lo uso per evitare che la biglia salti
+	bodyBallWhite->setLinearFactor(btVector3(1, 0, 1));
+	bodyBallRed->setLinearFactor(btVector3(1, 0, 1));
+	bodyBallYellow->setLinearFactor(btVector3(1, 0, 1));
+
 	//Carico la texture per il pavimento
 	GLuint textureFloor = loadTexture("textures/floor.jpg");
 
@@ -257,11 +262,6 @@ int main(){
 	debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 	poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
 
-//  Codice per la versione camera.h
-//	camera.setPerspective(45.0f,(float)SCR_WIDTH/(float)SCR_HEIGHT, 1.0f, 10000.0f);
-//	projection = camera.getProjectionMatrix();
-
-	// Codice per la versione camera_v3.h
 	projection = glm::perspective(45.0f, (float)SCR_WIDTH/(float)SCR_HEIGHT, 1.0f, 10000.0f);
 
 	selectedBallPos = poolBallPos[0];
@@ -415,11 +415,11 @@ void throw_ball(btRigidBody* ball){
 
 	glm::vec4 ballPos;
 
-	//ball->getMotionState()->getWorldTransform(transform);
+	ball->getMotionState()->getWorldTransform(transform);
 
-	//origin = transform.getOrigin();
+	origin = transform.getOrigin();
 
-	//ballPos = glm::vec4(origin.getX(), origin.getY(), origin.getZ(), 1.0f);
+	ballPos = glm::vec4(origin.getX(), origin.getY(), origin.getZ(), 1.0f);
 
 	glm::vec4 mousePos = glm::vec4(x, y, 1.0f, 1.0f);
 
@@ -429,18 +429,15 @@ void throw_ball(btRigidBody* ball){
 
 	cout << "Direction: " << direction.x << " - " << direction.y << " - " << direction.z << endl;
 
-	//glm::vec3 direction = glm::normalize(mousePos - ballPos) * shootInitialSpeed;
+	glm::vec3 direction1 = glm::normalize(mousePos - ballPos) * shootInitialSpeed;
 
 	impulse = btVector3(direction.x, direction.y, direction.z);
 
 	cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
 
-	//Lo uso per evitare che la biglia salti
-	ball->setLinearFactor(btVector3(1, 0, 1));
-
 	ball->applyCentralImpulse(impulse);
 
-	//cout << "\nX: " << x << " - Y: " << y << "\nBall X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << endl;
+	cout << "Ball X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << endl;
 
 	//checkShoot = true;
 }
