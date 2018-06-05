@@ -180,10 +180,11 @@ public:
 	}
 
 	mat4 MoveCamera(vec3 newPosition){
-		float distance = 2.0f;
+		float distance = 3.0f;
 
 		vec3 hipotenuse = newPosition - this->Position;
 		vec3 direction = hipotenuse - this->Front * distance;
+		direction.y += 0.5f;
 
 		mat4 matrix = translate(mat4(1.0f), direction);
 

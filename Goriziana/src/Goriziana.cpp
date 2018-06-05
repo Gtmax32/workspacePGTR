@@ -82,9 +82,10 @@ GLfloat quadratic = 0.032f;
 glm::vec3 sphereSize = glm::vec3(0.5f, 0.5f, 0.5f);
 
 //Posizione delle biglie del gioco
-glm::vec3 poolBallPos[] = { glm::vec3(-5.5f, 7.081f, -2.2f), // biglia bianca
-glm::vec3(5.5f, 7.081f, 0.0f), // biglia rossa
-glm::vec3(-5.5f, 7.081f, 2.2f) // biglia gialla
+glm::vec3 poolBallPos[] = {
+	glm::vec3(-5.5f, 7.0f, -2.2f), // biglia bianca
+	glm::vec3(-5.5f, 7.0f, 2.2f), // biglia gialla
+	glm::vec3(5.5f, 7.0f, 0.0f) // biglia rossa
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -109,7 +110,7 @@ void throw_ball(btRigidBody* ball);
 
 Physics poolSimulation;
 BulletDebugDrawer debugger;
-btRigidBody* bodyBallWhite;
+btRigidBody* playerBall;
 
 glm::vec3 selectedBallPos(0.0f);
 
@@ -119,6 +120,7 @@ glm::mat4 model(1.0f);
 glm::mat3 normal(1.0f);
 
 bool checkShoot = false;
+bool playerTwo = true;
 
 int main() {
 	//INIZIALIZZO GLFW
@@ -196,7 +198,7 @@ int main() {
 	glm::vec3 bodyTableSize = glm::vec3(12.0f, 0.1f, 5.2f);
 	glm::vec3 bodyTableRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 0.3, 0.3);
+	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 0.3, 0.5);
 
 	//CREO I BORDI DEL TAVOLO
 	//LATO LUNGO POSTERIORE
@@ -204,38 +206,37 @@ int main() {
 	glm::vec3 bodyTableLSSize = glm::vec3(12.0f, 1.0f, 0.1f);
 	glm::vec3 bodyTableLSRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.3, 0.3);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.3, 0.5);
 
 	//LATO LUNGO ANTERIORE
 	bodyTableLSPos = glm::vec3(0.0f, 6.8f, 5.1f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.3, 0.3);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.3, 0.5);
 
 	//LATO CORTO SINISTRO
 	glm::vec3 bodyTableSSPos = glm::vec3(-11.7f, 6.8f, 0.0f);
 	glm::vec3 bodyTableSSSize = glm::vec3(0.1f, 1.0f, 5.2f);
 	glm::vec3 bodyTableSSRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.3, 0.3);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.3, 0.5);
 
 	//LATO CORTO DESTRO
 	bodyTableSSPos = glm::vec3(11.8f, 6.8f, 0.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.3, 0.3);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.3, 0.5);
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE ALLE BIGLIE
 	glm::vec3 bodyBallRadius = sphereSize;
 	glm::vec3 bodyBallRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	bodyBallWhite = poolSimulation.createRigidBody(1, poolBallPos[0], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
-
-	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
-	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
+	btRigidBody* bodyBallWhite = poolSimulation.createRigidBody(1, poolBallPos[0], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
+	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
+	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
 
 	//Lo uso per evitare che la biglia salti
 	bodyBallWhite->setLinearFactor(btVector3(1, 0, 1));
-	bodyBallRed->setLinearFactor(btVector3(1, 0, 1));
 	bodyBallYellow->setLinearFactor(btVector3(1, 0, 1));
+	bodyBallRed->setLinearFactor(btVector3(1, 0, 1));
 
 	//Carico la texture per il pavimento
 	GLuint textureFloor = load_texture("textures/floor.jpg");
@@ -260,6 +261,9 @@ int main() {
 	btTransform transform;
 	btVector3 linearVelocity, angularVelocity, origin;
 	glm::vec3 position;
+
+	// Setto la biglia da cui comincerà il gioco
+	playerBall = bodyBallWhite;
 
 	//AVVIO IL RENDER LOOP
 	while (!glfwWindowShouldClose(window)) {
@@ -287,25 +291,26 @@ int main() {
 
 		model = mat4(1.0f);
 
-		linearVelocity = bodyBallWhite->getLinearVelocity();
-		//angularVelocity = bodyBallWhite->getAngularVelocity();
+		linearVelocity = playerBall->getLinearVelocity();
+		//angularVelocity = playerBall->getAngularVelocity();
 
 //		out << currentFrame << endl;
 //		out << "LinearVelocity:\n( " << linearVelocity.getX() << ", " << linearVelocity.getY() << ", " << linearVelocity.getZ() << " )\n" << endl;
 //		out << "AngularVelocity:\n( " << angularVelocity.getX() << ", " << angularVelocity.getY() << ", " << angularVelocity.getZ() << " )\n" << endl;
 
 		if (check_idle_ball(linearVelocity) && checkShoot) {
-			bodyBallWhite->getMotionState()->getWorldTransform(transform);
+			// Non appena la biglia del giocatore si ferma, passo all'altro giocatore, spostando la camera sull'altra biglia
+			// TODO: come farlo???
+			playerBall = bodyBallYellow;
+
+			playerBall->getMotionState()->getWorldTransform(transform);
 			origin = transform.getOrigin();
 
 			position = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
 
 			camera.setObjectPos(position);
 
-			//position += glm::vec3(3.0f, 0.0f, 0.0f);
-
 			view = camera.MoveCamera(position);
-			//view = camera.RotateAroundPoint(position, -180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
 			checkShoot = false;
 		}
@@ -363,7 +368,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		//cout << "Left button pressed at " << currentFrame << endl;
-		throw_ball(bodyBallWhite);
+		throw_ball(playerBall);
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
