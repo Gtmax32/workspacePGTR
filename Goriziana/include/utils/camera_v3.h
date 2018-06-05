@@ -152,7 +152,7 @@ public:
 	}
 
 	// Ruota la camera attorno ad un punto nello spazio
-	mat4 RotateAroundPoint(vec3 objectPoint, GLfloat angle, vec3 axis){
+	mat4 RotateAroundPoint(GLfloat angle, vec3 axis){
 		GLfloat velocity = this->MouseSensitivity * (-angle);
 
 		vec3 direction = this->selectedBallPos - vec3(0.0f);
@@ -166,7 +166,7 @@ public:
 		this->Position = matrix * vec4(this->Position, 1.0f);
 		this->Front = matrix * vec4(this->Front, 0.0f);
 
-		//std::cout << this->Position.x << "," << this->Position.y << "," << this->Position.z <<  std::endl;
+		//std::cout << this->Front.x << "," << this->Front.y << "," << this->Front.z <<  std::endl;
 
 		return lookAt(this->Position, this->Position + this->Front, this->Up);
 	}
@@ -180,13 +180,14 @@ public:
 	}
 
 	mat4 MoveCamera(vec3 newPosition){
-		vec3 direction = (newPosition + OFFSET) - this->Position;
+		float distance = 2.0f;
+
+		vec3 hipotenuse = newPosition - this->Position;
+		vec3 direction = hipotenuse - this->Front * distance;
 
 		mat4 matrix = translate(mat4(1.0f), direction);
 
 		this->Position = matrix * vec4(this->Position, 1.0f);
-
-		this->Front = matrix * vec4(this->Front, 0.0f);
 
 		return lookAt(this->Position, this->Position + this->Front, this->Up);
 	}

@@ -57,7 +57,6 @@ GLfloat firstMouse = true;
 double mouseX, mouseY;
 
 // Deltatime per uniformare la velocità di movimento
-GLfloat currentFrame = 0.0f;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
@@ -95,15 +94,15 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window);
+void process_input(GLFWwindow* window);
 
 // Funzioni di utility
-GLuint loadTexture(const char* path);
-GLuint loadCubemap(vector<string> faces);
+GLuint load_texture(const char* path);
+GLuint load_cubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
 void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
-bool checkIdleBall(btVector3 linearVelocity);
+bool check_idle_ball(btVector3 linearVelocity);
 
 // Funzioni per gestire il gioco
 void throw_ball(btRigidBody* ball);
@@ -239,10 +238,10 @@ int main() {
 	bodyBallYellow->setLinearFactor(btVector3(1, 0, 1));
 
 	//Carico la texture per il pavimento
-	GLuint textureFloor = loadTexture("textures/floor.jpg");
+	GLuint textureFloor = load_texture("textures/floor.jpg");
 
 	//Carico le texture per lo skybox
-	GLuint textureSkybox = loadCubemap(faces);
+	GLuint textureSkybox = load_cubemap(faces);
 
 	// imposto il delta di tempo massimo per aggiornare la simulazione fisica
 	GLfloat maxSecPerFrame = 1.0f / 60.0f;
@@ -264,22 +263,21 @@ int main() {
 
 	//AVVIO IL RENDER LOOP
 	while (!glfwWindowShouldClose(window)) {
-		currentFrame = glfwGetTime();
+		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
 		glClearColor(0.31f, 0.76f, 0.92f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		processInput(window);
+		process_input(window);
 
 		view = camera.GetViewMatrix();
 
 		debugger.SetMatrices(&shaderDebugger, projection, view, model);
 		poolSimulation.dynamicsWorld->debugDrawWorld();
 
-		poolSimulation.dynamicsWorld->stepSimulation((
-				deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
+		poolSimulation.dynamicsWorld->stepSimulation((deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
 
 		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
 
@@ -289,25 +287,28 @@ int main() {
 
 		model = mat4(1.0f);
 
-		//linearVelocity = bodyBallWhite->getLinearVelocity();
+		linearVelocity = bodyBallWhite->getLinearVelocity();
 		//angularVelocity = bodyBallWhite->getAngularVelocity();
 
 //		out << currentFrame << endl;
 //		out << "LinearVelocity:\n( " << linearVelocity.getX() << ", " << linearVelocity.getY() << ", " << linearVelocity.getZ() << " )\n" << endl;
 //		out << "AngularVelocity:\n( " << angularVelocity.getX() << ", " << angularVelocity.getY() << ", " << angularVelocity.getZ() << " )\n" << endl;
 
-		/*if(checkIdleBall(linearVelocity) && checkShoot){
-		 bodyBallWhite->getMotionState()->getWorldTransform(transform);
-		 origin = transform.getOrigin();
+		if (check_idle_ball(linearVelocity) && checkShoot) {
+			bodyBallWhite->getMotionState()->getWorldTransform(transform);
+			origin = transform.getOrigin();
 
-		 position = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
+			position = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
 
-		 camera.MoveCamera(position);
-		 //view = camera.RotateAroundPoint(position, -180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-		 camera.setObjectPos(position);
+			camera.setObjectPos(position);
 
-		 checkShoot = false;
-		 }*/
+			//position += glm::vec3(3.0f, 0.0f, 0.0f);
+
+			view = camera.MoveCamera(position);
+			//view = camera.RotateAroundPoint(position, -180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+
+			checkShoot = false;
+		}
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -328,7 +329,7 @@ int main() {
 	return 0;
 }
 
-void processInput(GLFWwindow *window) {
+void process_input(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 }
@@ -351,7 +352,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	lastX = xpos;
 	lastY = ypos;
 
-	view = camera.RotateAroundPoint(selectedBallPos, xOffset, glm::vec3(0.0f, 1.0f, 0.0f));
+	view = camera.RotateAroundPoint(xOffset, glm::vec3(0.0f, 1.0f, 0.0f));
 
 	//camera.ProcessMouseMovement(xOffset, yOffset);
 
@@ -395,11 +396,11 @@ void throw_ball(btRigidBody* ball) {
 	ball->activate(true);
 	ball->applyCentralImpulse(impulse);
 
-	//checkShoot = true;
+	checkShoot = true;
 }
 
 // Carico un'immagine e creo texture OpengGL
-GLuint loadTexture(char const * path) {
+GLuint load_texture(char const * path) {
 	GLuint textureID;
 	GLint width, height, nrComponents;
 
@@ -435,7 +436,7 @@ GLuint loadTexture(char const * path) {
 }
 
 // Carico le immagini per formare una Cubemap
-GLuint loadCubemap(vector<string> faces) {
+GLuint load_cubemap(vector<string> faces) {
 	GLuint textureID;
 	GLint width, height, nrChannels;
 
@@ -662,7 +663,7 @@ void draw_skybox(Shader &shaderSB, Model &box, GLuint texture) {
 	glDepthFunc(GL_LESS);
 }
 
-bool checkIdleBall(btVector3 linearVelocity) {
+bool check_idle_ball(btVector3 linearVelocity) {
 	if (abs(linearVelocity.getX()) < 0.01 && abs(linearVelocity.getY()) < 0.01 && abs(linearVelocity.getZ()) < 0.01)
 		return true;
 
