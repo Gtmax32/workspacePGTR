@@ -51,8 +51,8 @@ Camera camera(-8.5f, 7.6f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 const GLfloat ROTATION_ANGLE = 5.0f;
 
 // Variabili utilizzate per implementare una Camera FPS
-GLfloat lastX = (float)SCR_WIDTH / 2.0f;
-GLfloat lastY = (float)SCR_HEIGHT / 2.0f;
+GLfloat lastX = (float) SCR_WIDTH / 2.0f;
+GLfloat lastY = (float) SCR_HEIGHT / 2.0f;
 GLfloat firstMouse = true;
 double mouseX, mouseY;
 
@@ -62,11 +62,7 @@ GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
 // posizioni delle mie pointlight
-glm::vec3 lightPositions[] = {
-		glm::vec3(-5.0f, 15.0f, 0.0f),
-		glm::vec3(0.0f, 15.0f, 0.0f),
-		glm::vec3(5.0f, 15.0f, 0.0f),
-};
+glm::vec3 lightPositions[] = { glm::vec3(-5.0f, 15.0f, 0.0f), glm::vec3(0.0f, 15.0f, 0.0f), glm::vec3(5.0f, 15.0f, 0.0f), };
 
 // Uniform da passare agli shader
 glm::vec3 specularColor(1.0f, 1.0f, 1.0f);
@@ -87,10 +83,9 @@ GLfloat quadratic = 0.032f;
 glm::vec3 sphereSize = glm::vec3(0.5f, 0.5f, 0.5f);
 
 //Posizione delle biglie del gioco
-glm::vec3 poolBallPos[] = {
-		glm::vec3(-5.5f, 7.081f, -2.2f), // biglia bianca
-		glm::vec3(5.5f, 7.081f, 0.0f), // biglia rossa
-		glm::vec3(-5.5f, 7.081f, 2.2f) // biglia gialla
+glm::vec3 poolBallPos[] = { glm::vec3(-5.5f, 7.081f, -2.2f), // biglia bianca
+glm::vec3(5.5f, 7.081f, 0.0f), // biglia rossa
+glm::vec3(-5.5f, 7.081f, 2.2f) // biglia gialla
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -126,25 +121,25 @@ glm::mat3 normal(1.0f);
 
 bool checkShoot = false;
 
-int main(){
+int main() {
 	//INIZIALIZZO GLFW
-	if (! glfwInit()){
+	if (!glfwInit()) {
 		cout << "Errore nell'inizializzazione di GLFW!\n" << endl;
 		return -1;
 	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	//CREO LA FINESTRA
 
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH,SCR_HEIGHT,"Goriziana",nullptr,nullptr);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Goriziana", nullptr, nullptr);
 
-	if (!window){
-		cout <<"Errore nella creazione della finestra!" << endl;
+	if (!window) {
+		cout << "Errore nella creazione della finestra!" << endl;
 		glfwTerminate();
 
 		return -1;
@@ -154,7 +149,7 @@ int main(){
 
 	//SETTO LE FUNZIONI DI CALLBACK CHE SI OCCUPANO DI GESTIRE LE INTERAZIONI DELL'UTENTE
 
-	glfwSetFramebufferSizeCallback(window,framebuffer_size_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	//glfwSetScrollCallback(window, scroll_callback);
@@ -172,21 +167,14 @@ int main(){
 	glEnable(GL_DEPTH_TEST);
 
 	//SETTO IL CURSORE AL CENTRO DELLA SCHERMATA
-	glfwSetCursorPos(window, (double)(SCR_WIDTH/2), (double)(SCR_HEIGHT/2));
+	glfwSetCursorPos(window, (double) (SCR_WIDTH / 2), (double) (SCR_HEIGHT / 2));
 
 	//VETTORE UTILIZZATO PER CARICARE LA CUBEMAP
-	vector<string> faces = {
-		"skybox/right.jpg",
-		"skybox/left.jpg",
-		"skybox/top.jpg",
-		"skybox/bottom.jpg",
-		"skybox/front.jpg",
-		"skybox/back.jpg"
-	};
+	vector<string> faces = { "skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg" };
 
 	//UTILIZZO LA CLASSE SHADER CREATA PER COMPILARE IL VS ED IL FS, E LINKARLI NEL PS
 	Shader shaderNoTexture("shaders/shaderNoTexture.vert", "shaders/shaderNoTexture.frag");
-	Shader shaderTexture("shaders/shaderTexture.vert","shaders/shaderTexture.frag");
+	Shader shaderTexture("shaders/shaderTexture.vert", "shaders/shaderTexture.frag");
 	Shader shaderDebugger("shaders/shaderDebug.vert", "shaders/shaderDebug.frag");
 	Shader shaderSkybox("shaders/shaderSkybox.vert", "shaders/shaderSkybox.frag");
 
@@ -262,7 +250,7 @@ int main(){
 	debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 	poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
 
-	projection = glm::perspective(45.0f, (float)SCR_WIDTH/(float)SCR_HEIGHT, 1.0f, 10000.0f);
+	projection = glm::perspective(45.0f, (float) SCR_WIDTH / (float) SCR_HEIGHT, 1.0f, 10000.0f);
 
 	selectedBallPos = poolBallPos[0];
 	camera.setObjectPos(selectedBallPos);
@@ -270,14 +258,12 @@ int main(){
 	// File di log inserito per debuggare la biglia
 	//ofstream out("log.txt");
 
-	//cout << "LinearSleepThreshold: " << bodyBallWhite->getLinearSleepingThreshold() << "\nAngularSleepThreshold: " << bodyBallWhite->getAngularSleepingThreshold() << endl;
-
 	btTransform transform;
 	btVector3 linearVelocity, angularVelocity, origin;
 	glm::vec3 position;
 
 	//AVVIO IL RENDER LOOP
-	while(!glfwWindowShouldClose(window)){
+	while (!glfwWindowShouldClose(window)) {
 		currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -292,7 +278,8 @@ int main(){
 		debugger.SetMatrices(&shaderDebugger, projection, view, model);
 		poolSimulation.dynamicsWorld->debugDrawWorld();
 
-		poolSimulation.dynamicsWorld->stepSimulation((deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
+		poolSimulation.dynamicsWorld->stepSimulation((
+				deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
 
 		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
 
@@ -310,17 +297,17 @@ int main(){
 //		out << "AngularVelocity:\n( " << angularVelocity.getX() << ", " << angularVelocity.getY() << ", " << angularVelocity.getZ() << " )\n" << endl;
 
 		/*if(checkIdleBall(linearVelocity) && checkShoot){
-			bodyBallWhite->getMotionState()->getWorldTransform(transform);
-			origin = transform.getOrigin();
+		 bodyBallWhite->getMotionState()->getWorldTransform(transform);
+		 origin = transform.getOrigin();
 
-			position = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
+		 position = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
 
-			camera.MoveCamera(position);
-			//view = camera.RotateAroundPoint(position, -180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-			camera.setObjectPos(position);
+		 camera.MoveCamera(position);
+		 //view = camera.RotateAroundPoint(position, -180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+		 camera.setObjectPos(position);
 
-			checkShoot = false;
-		}*/
+		 checkShoot = false;
+		 }*/
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -341,32 +328,17 @@ int main(){
 	return 0;
 }
 
-void processInput(GLFWwindow *window){
-	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+void processInput(GLFWwindow *window) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-
-//	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-//		camera.ProcessKeyboard(FORWARD, deltaTime);
-//
-//	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-//		camera.ProcessKeyboard(BACKWARD, deltaTime);
-//
-//	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-//		view = camera.RotateAroundPoint(selectedBallPos, -ROTATION_ANGLE, glm::vec3(0.0f, 1.0f, 0.0f));
-//
-//	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-//		view = camera.RotateAroundPoint(selectedBallPos, ROTATION_ANGLE, glm::vec3(0.0f, 1.0f, 0.0f));
-//
-//	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-//		throw_ball(bodyBallWhite);
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height){
-	glViewport(0,0,width,height);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos){
-	if(firstMouse){
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+	if (firstMouse) {
 		lastX = xpos;
 		lastY = ypos;
 
@@ -387,63 +359,47 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 	mouseY = ypos;
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
-		cout << "Left button pressed at " << currentFrame << endl;
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		//cout << "Left button pressed at " << currentFrame << endl;
 		throw_ball(bodyBallWhite);
 	}
 
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
-    	cout << "Right button pressed!" << endl;
-    }
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		cout << "Right button pressed!" << endl;
+	}
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	//camera.ProcessMouseScroll(yoffset);
 }
 
-void throw_ball(btRigidBody* ball){
+void throw_ball(btRigidBody* ball) {
 	glm::mat4 screenToWorld = glm::inverse(projection * view);
 
-	GLfloat shootInitialSpeed = 2.0f;
+	GLfloat shootInitialSpeed = 15.0f;
 
 	GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
 			y = -(mouseY / SCR_HEIGHT) * 2 + 1;
 
-	btVector3 impulse, origin;
-	btTransform transform;
-
-	glm::vec4 ballPos;
-
-	ball->getMotionState()->getWorldTransform(transform);
-
-	origin = transform.getOrigin();
-
-	ballPos = glm::vec4(origin.getX(), origin.getY(), origin.getZ(), 1.0f);
+	btVector3 impulse;
 
 	glm::vec4 mousePos = glm::vec4(x, y, 1.0f, 1.0f);
 
-	cout << "MousePos: " << mousePos.x << " - " << mousePos.y << " - " << mousePos.z << endl;
-
 	glm::vec4 direction = glm::normalize(screenToWorld * mousePos) * shootInitialSpeed;
-
-	cout << "Direction: " << direction.x << " - " << direction.y << " - " << direction.z << endl;
-
-	glm::vec3 direction1 = glm::normalize(mousePos - ballPos) * shootInitialSpeed;
 
 	impulse = btVector3(direction.x, direction.y, direction.z);
 
-	cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
+	//cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
 
+	ball->activate(true);
 	ball->applyCentralImpulse(impulse);
-
-	cout << "Ball X: " << ballPos.x << " - Y: " << ballPos.y << " - Z: " << ballPos.z << endl;
 
 	//checkShoot = true;
 }
 
 // Carico un'immagine e creo texture OpengGL
-GLuint loadTexture(char const * path){
+GLuint loadTexture(char const * path) {
 	GLuint textureID;
 	GLint width, height, nrComponents;
 
@@ -451,7 +407,7 @@ GLuint loadTexture(char const * path){
 
 	unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
 
-	if (data){
+	if (data) {
 		GLenum format;
 		if (nrComponents == 1)
 			format = GL_RED;
@@ -470,8 +426,7 @@ GLuint loadTexture(char const * path){
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		stbi_image_free(data);
-	}
-	else{
+	} else {
 		cout << "Texture failed to load at path: " << path << endl;
 		stbi_image_free(data);
 	}
@@ -480,40 +435,39 @@ GLuint loadTexture(char const * path){
 }
 
 // Carico le immagini per formare una Cubemap
-GLuint loadCubemap(vector<string> faces){
+GLuint loadCubemap(vector<string> faces) {
 	GLuint textureID;
 	GLint width, height, nrChannels;
 
 	glGenTextures(1, &textureID);
 	glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
-    for (GLuint i = 0; i < faces.size(); i++){
-        unsigned char *face = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+	for (GLuint i = 0; i < faces.size(); i++) {
+		unsigned char *face = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
 
-        if (face){
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, face);
-            stbi_image_free(face);
-        }
-        else {
-            cout << "Cubemap texture failed to load at path: " << faces[i] << endl;
-            stbi_image_free(face);
-        }
-    }
+		if (face) {
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, face);
+			stbi_image_free(face);
+		} else {
+			cout << "Cubemap texture failed to load at path: " << faces[i] << endl;
+			stbi_image_free(face);
+		}
+	}
 
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-    return textureID;
+	return textureID;
 }
 
 // Imposto lo shader e renderizzo i modelli degli oggetti senza texture
-void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow){
+void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow) {
 //	glm::mat4 model(1.0f);
 //	glm::mat4 normal(1.0f);
 //	glm::mat4 whitePos(1.0f);
@@ -530,16 +484,16 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	shaderNT.setVec3("specularColor", specularColor);
 
 	// Per ogni luce nello shaderNT, passo la posizione corrispondente
-	for(GLuint i = 0; i < NR_LIGHTS; i++){
+	for (GLuint i = 0; i < NR_LIGHTS; i++) {
 		string number = to_string(i);
 		shaderNT.setVec3(("lights[" + number + "]").c_str(), lightPositions[i]);
 	}
 
-	shaderNT.setFloat("Kd",Kd);
+	shaderNT.setFloat("Kd", Kd);
 	shaderNT.setFloat("Ka", Ka);
 	shaderNT.setFloat("Ks", Ks);
 
-	shaderNT.setFloat("constant",constant);
+	shaderNT.setFloat("constant", constant);
 	shaderNT.setFloat("linear", linear);
 	shaderNT.setFloat("quadratic", quadratic);
 	shaderNT.setFloat("shininess", shininess);
@@ -557,10 +511,10 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 //	model = glm::translate(model, poolBallPos[0]);
 	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::make_mat4(matrix) * glm::scale(model, sphereSize);
-	normal = glm::inverseTranspose(glm::mat3(view*model));
+	normal = glm::inverseTranspose(glm::mat3(view * model));
 
 	shaderNT.setMat4("modelMatrix", model);
-	shaderNT.setMat3("normalMatrix",normal);
+	shaderNT.setMat3("normalMatrix", normal);
 
 	ball.Draw(shaderNT);
 
@@ -577,10 +531,10 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::make_mat4(matrix) * glm::scale(model, sphereSize);
 	// se casto a mat3 una mat4, in automatico estraggo la sottomatrice 3x3 superiore sinistra
-	normal = glm::inverseTranspose(glm::mat3(view*model));
+	normal = glm::inverseTranspose(glm::mat3(view * model));
 
 	shaderNT.setMat4("modelMatrix", model);
-	shaderNT.setMat3("normalMatrix",normal);
+	shaderNT.setMat3("normalMatrix", normal);
 
 	ball.Draw(shaderNT);
 
@@ -597,16 +551,16 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::make_mat4(matrix) * glm::scale(model, sphereSize);
 	// se casto a mat3 una mat4, in automatico estraggo la sottomatrice 3x3 superiore sinistra
-	normal = glm::inverseTranspose(glm::mat3(view*model));
+	normal = glm::inverseTranspose(glm::mat3(view * model));
 
 	shaderNT.setMat4("modelMatrix", model);
-	shaderNT.setMat3("normalMatrix",normal);
+	shaderNT.setMat3("normalMatrix", normal);
 
 	ball.Draw(shaderNT);
 }
 
 // Imposto lo shader e renderizzo i modelli degli oggetti con texture
-void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin){
+void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin) {
 //	glm::mat4 model(1.0f);
 //	glm::mat4 normal(1.0f);
 
@@ -617,16 +571,16 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 	shaderT.setVec3("specularColor", specularColor);
 
 	// Per ogni luce nello shaderT, passo la posizione corrispondente
-	for(GLuint i = 0; i < NR_LIGHTS; i++){
+	for (GLuint i = 0; i < NR_LIGHTS; i++) {
 		string number = to_string(i);
 		shaderT.setVec3(("lights[" + number + "]").c_str(), lightPositions[i]);
 	}
 
-	shaderT.setFloat("Kd",Kd);
+	shaderT.setFloat("Kd", Kd);
 	shaderT.setFloat("Ka", Ka);
 	shaderT.setFloat("Ks", Ks);
 
-	shaderT.setFloat("constant",constant);
+	shaderT.setFloat("constant", constant);
 	shaderT.setFloat("linear", linear);
 	shaderT.setFloat("quadratic", quadratic);
 	shaderT.setFloat("shininess", shininess);
@@ -643,10 +597,10 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 	model = glm::translate(model, glm::vec3(0.0f, 0.1f, -0.15f));
 	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(25.0f, 25.0f, 25.0f));
-	normal = glm::inverseTranspose(glm::mat3(view*model));
+	normal = glm::inverseTranspose(glm::mat3(view * model));
 
 	shaderT.setMat4("modelMatrix", model);
-	shaderT.setMat3("normalMatrix",normal);
+	shaderT.setMat3("normalMatrix", normal);
 
 	table.Draw(shaderT);
 
@@ -657,10 +611,10 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 	model = glm::translate(model, glm::vec3(0.0f, 11.0f, 0.0f));
 	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
-	normal = glm::inverseTranspose(glm::mat3(view*model));
+	normal = glm::inverseTranspose(glm::mat3(view * model));
 
 	shaderT.setMat4("modelMatrix", model);
-	shaderT.setMat3("normalMatrix",normal);
+	shaderT.setMat3("normalMatrix", normal);
 
 	pin.Draw(shaderT);
 
@@ -690,7 +644,7 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 }
 
 // Imposto lo shader e renderizzo la Cubemap
-void draw_skybox(Shader &shaderSB, Model &box, GLuint texture){
+void draw_skybox(Shader &shaderSB, Model &box, GLuint texture) {
 	glDepthFunc(GL_LEQUAL);
 	shaderSB.Use();
 
@@ -699,20 +653,19 @@ void draw_skybox(Shader &shaderSB, Model &box, GLuint texture){
 
 	view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
 
-	shaderSB.setMat4("projectionMatrix",projection);
-	shaderSB.setMat4("viewMatrix",view);
-	shaderSB.setInt("skyboxTexture",0);
+	shaderSB.setMat4("projectionMatrix", projection);
+	shaderSB.setMat4("viewMatrix", view);
+	shaderSB.setInt("skyboxTexture", 0);
 
 	box.Draw(shaderSB);
 
 	glDepthFunc(GL_LESS);
 }
 
-bool checkIdleBall(btVector3 linearVelocity){
-	if(abs(linearVelocity.getX()) < 0.01 && abs(linearVelocity.getY()) < 0.01 && abs(linearVelocity.getZ()) < 0.01)
+bool checkIdleBall(btVector3 linearVelocity) {
+	if (abs(linearVelocity.getX()) < 0.01 && abs(linearVelocity.getY()) < 0.01 && abs(linearVelocity.getZ()) < 0.01)
 		return true;
 
 	return false;
 }
-
 
