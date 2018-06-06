@@ -95,7 +95,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void process_input(GLFWwindow* window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 // Funzioni di utility
 GLuint load_texture(const char* path);
@@ -156,6 +156,7 @@ int main() {
 	//SETTO LE FUNZIONI DI CALLBACK CHE SI OCCUPANO DI GESTIRE LE INTERAZIONI DELL'UTENTE
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	//glfwSetScrollCallback(window, scroll_callback);
@@ -263,8 +264,6 @@ int main() {
 	// imposto il delta di tempo massimo per aggiornare la simulazione fisica
 	GLfloat maxSecPerFrame = 1.0f / 60.0f;
 
-
-
 	projection = glm::perspective(45.0f, (float) SCR_WIDTH / (float) SCR_HEIGHT, 1.0f, 10000.0f);
 
 	selectedBallPos = poolBallPos[0];
@@ -289,7 +288,7 @@ int main() {
 		glClearColor(0.31f, 0.76f, 0.92f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		process_input(window);
+		glfwPollEvents();
 
 		view = camera.GetViewMatrix();
 
@@ -338,7 +337,6 @@ int main() {
 		}
 
 		glfwSwapBuffers(window);
-		glfwPollEvents();
 	}
 
 	shaderTexture.Delete();
@@ -356,12 +354,14 @@ int main() {
 	return 0;
 }
 
-void process_input(GLFWwindow *window) {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
+  // if ESC is pressed, close the application
+  if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+      glfwSetWindowShouldClose(window, GL_TRUE);
 
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		debugMode = !debugMode;
+  // if D is pressed, activate/deactivate DrawDebugger from Bullet Physics
+  if(key == GLFW_KEY_D && action == GLFW_PRESS)
+	  debugMode=!debugMode;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
