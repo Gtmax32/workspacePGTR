@@ -88,6 +88,14 @@ glm::vec3 poolBallPos[] = {
 	glm::vec3(5.5f, 7.0f, 0.0f) // biglia rossa
 };
 
+glm::vec3 poolPinPos[] = {
+	glm::vec3(0.70f, 7.0f, 0.0f), // birillo in alto
+	glm::vec3(0.0f, 7.0f, 0.70f), // birillo a destra
+	glm::vec3(-0.70f, 7.0f, 0.0f), // birillo in basso
+	glm::vec3(0.00f, 7.0f, -0.70f), // birillo a sinistra
+	glm::vec3(0.0f, 7.0f, 0.0f), // birillo al centro
+};
+
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
 
 // Registra gli eventi che modificano le dimensioni della finestra
@@ -101,7 +109,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 GLuint load_texture(const char* path);
 GLuint load_cubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
-void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin, btRigidBody* bodyPin);
+void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
 bool check_idle_ball(btVector3 linearVelocity);
 
@@ -111,6 +119,7 @@ void throw_ball(btRigidBody* ball);
 Physics poolSimulation;
 BulletDebugDrawer debugger;
 vector<btRigidBody*> playersBall;
+vector<btRigidBody*> vectorPin;
 
 glm::vec3 selectedBallPos(0.0f);
 
@@ -197,14 +206,14 @@ int main() {
 	glm::vec3 bodyPlaneSize = glm::vec3(10.0f, 0.1f, 10.0f);
 	glm::vec3 bodyPlaneRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	btRigidBody* bodyPlane = poolSimulation.createRigidBody(0, poolPlanePos, bodyPlaneSize, bodyPlaneRotation, 0.0, 0.8, 0.3);
+	btRigidBody* bodyPlane = poolSimulation.createRigidBody(0, poolPlanePos, bodyPlaneSize, bodyPlaneRotation, 0.0, 0.3, 0.3);
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AL TAVOLO
 	glm::vec3 bodyTablePos = glm::vec3(0.0f, 6.48f, 0.0f);
 	glm::vec3 bodyTableSize = glm::vec3(12.0f, 0.1f, 5.2f);
 	glm::vec3 bodyTableRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 0.3, 0.5);
+	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 0.8, 0.3);
 
 	//CREO I BORDI DEL TAVOLO
 	//LATO LUNGO POSTERIORE
@@ -234,9 +243,11 @@ int main() {
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
 	glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.15f, 0.09f);
 	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 bodyPinPosition = glm::vec3(0.0f, 7.0f, 0.0f);
 
-	btRigidBody* bodyPin = poolSimulation.createRigidBody(2,bodyPinPosition, bodyPinSize,bodyPinRotation,1.0, 0.3, 0.3);
+	for (int i = 0; i < 5; i++){
+		btRigidBody* bodyPin = poolSimulation.createRigidBody(2, poolPinPos[i], bodyPinSize, bodyPinRotation, 0.7, 0.3, 0.3);
+		vectorPin.push_back(bodyPin);
+	}
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE ALLE BIGLIE
 	glm::vec3 bodyBallRadius = sphereSize;
@@ -302,11 +313,12 @@ int main() {
 		debugger.SetMatrices(&shaderDebugger, projection, view, model);
 		poolSimulation.dynamicsWorld->debugDrawWorld();
 
-		poolSimulation.dynamicsWorld->stepSimulation((deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
+		poolSimulation.dynamicsWorld->stepSimulation((
+				deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
 
 		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
 
-		draw_model_texture(shaderTexture, modelPlane, bodyPlane, textureFloor, modelTable, modelPin, bodyPin);
+		draw_model_texture(shaderTexture, modelPlane, bodyPlane, textureFloor, modelTable, modelPin, vectorPin);
 
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
 
@@ -354,14 +366,14 @@ int main() {
 	return 0;
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
-  // if ESC is pressed, close the application
-  if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-      glfwSetWindowShouldClose(window, GL_TRUE);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
+	// if ESC is pressed, close the application
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GL_TRUE);
 
-  // if D is pressed, activate/deactivate DrawDebugger from Bullet Physics
-  if(key == GLFW_KEY_D && action == GLFW_PRESS)
-	  debugMode=!debugMode;
+	// if D is pressed, activate/deactivate DrawDebugger from Bullet Physics
+	if (key == GLFW_KEY_D && action == GLFW_PRESS)
+		debugMode = !debugMode;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -407,7 +419,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 
 void throw_ball(btRigidBody* ball) {
 	// Se la palla non è ancora ferma, l'altro giocatore non può tirare.
-	if(!checkShoot){
+	if (!checkShoot) {
 		glm::mat4 screenToWorld = glm::inverse(projection * view);
 
 		GLfloat shootInitialSpeed = 15.0f;
@@ -584,7 +596,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 }
 
 // Imposto lo shader e renderizzo i modelli degli oggetti con texture
-void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin, btRigidBody* bodyPin) {
+void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin) {
 	GLfloat matrix[16];
 	btTransform transform;
 
@@ -628,20 +640,22 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 	table.Draw(shaderT);
 
 	//RENDERIZZO I BIRILLI
-	model = glm::mat4(1.0f);
-	normal = glm::mat3(1.0f);
+	for (int i = 0; i < 5; i++){
+		model = glm::mat4(1.0f);
+		normal = glm::mat3(1.0f);
 
-	bodyPin->getMotionState()->getWorldTransform(transform);
-	transform.getOpenGLMatrix(matrix);
+		vectorPin[i]->getMotionState()->getWorldTransform(transform);
+		transform.getOpenGLMatrix(matrix);
 
-	model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
-	model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
-	normal = glm::inverseTranspose(glm::mat3(view * model));
+		model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
+		model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
+		normal = glm::inverseTranspose(glm::mat3(view * model));
 
-	shaderT.setMat4("modelMatrix", model);
-	shaderT.setMat3("normalMatrix", normal);
+		shaderT.setMat4("modelMatrix", model);
+		shaderT.setMat3("normalMatrix", normal);
 
-	pin.Draw(shaderT);
+		pin.Draw(shaderT);
+	}
 
 	//RENDERIZZO IL PIANO
 //	bodyPlane->getMotionState()->getWorldTransform(transform);
