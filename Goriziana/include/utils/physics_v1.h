@@ -75,16 +75,19 @@ public:
         rotation.setEuler(rot.x,rot.y,rot.z);
 
         // Box
-        if (type == 0)
-        {
+        if (type == 0) {
             // converto il vettore di glm in un vettore di Bullet
             btVector3 dim = btVector3(size.x,size.y,size.z);
             // creo una BoxShape
             cShape = new btBoxShape(dim);
         }
         // Sphere (in questo caso prendo solo la prima componente di size, che contiene il raggio)
-        else if (type == 1)
-            cShape = new btSphereShape(size.x);
+        else if (type == 1) {
+            	cShape = new btSphereShape(size.x);
+        	} // Capsule
+        	else if (type == 2){
+        			cShape = new btCapsuleShape(size.x,size.y);
+        		}
 
         // aggiungo la Collision Shape alla lista
         this->collisionShapes.push_back(cShape);

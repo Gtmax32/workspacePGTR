@@ -101,7 +101,7 @@ void process_input(GLFWwindow* window);
 GLuint load_texture(const char* path);
 GLuint load_cubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
-void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin);
+void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin, btRigidBody* bodyPin);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
 bool check_idle_ball(btVector3 linearVelocity);
 
@@ -118,6 +118,8 @@ glm::mat4 projection(1.0f);
 glm::mat4 view(1.0f);
 glm::mat4 model(1.0f);
 glm::mat3 normal(1.0f);
+
+bool debugMode = true;
 
 bool checkShoot = false;
 // Variabile booleana che utilizzo per switchare tra i due giocatori.
@@ -228,6 +230,13 @@ int main() {
 
 	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.3, 0.5);
 
+	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
+	glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.15f, 0.09f);
+	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 bodyPinPosition = glm::vec3(0.0f, 7.0f, 0.0f);
+
+	btRigidBody* bodyPin = poolSimulation.createRigidBody(2,bodyPinPosition, bodyPinSize,bodyPinRotation,1.0, 0.3, 0.3);
+
 	//CREO IL CORPO RIGIDO DA ASSEGNARE ALLE BIGLIE
 	glm::vec3 bodyBallRadius = sphereSize;
 	glm::vec3 bodyBallRotation = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -254,8 +263,7 @@ int main() {
 	// imposto il delta di tempo massimo per aggiornare la simulazione fisica
 	GLfloat maxSecPerFrame = 1.0f / 60.0f;
 
-	debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
-	poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
+
 
 	projection = glm::perspective(45.0f, (float) SCR_WIDTH / (float) SCR_HEIGHT, 1.0f, 10000.0f);
 
@@ -285,6 +293,13 @@ int main() {
 
 		view = camera.GetViewMatrix();
 
+		if (debugMode)
+			debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+		else
+			debugger.setDebugMode(btIDebugDraw::DBG_NoDebug);
+
+		poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
+
 		debugger.SetMatrices(&shaderDebugger, projection, view, model);
 		poolSimulation.dynamicsWorld->debugDrawWorld();
 
@@ -292,7 +307,7 @@ int main() {
 
 		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
 
-		draw_model_texture(shaderTexture, modelPlane, bodyPlane, textureFloor, modelTable, modelPin);
+		draw_model_texture(shaderTexture, modelPlane, bodyPlane, textureFloor, modelTable, modelPin, bodyPin);
 
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
 
@@ -344,6 +359,9 @@ int main() {
 void process_input(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		debugMode = !debugMode;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -566,7 +584,10 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 }
 
 // Imposto lo shader e renderizzo i modelli degli oggetti con texture
-void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin) {
+void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin, btRigidBody* bodyPin) {
+	GLfloat matrix[16];
+	btTransform transform;
+
 	//RENDERIZZO IL TAVOLO
 	shaderT.Use();
 
@@ -607,11 +628,14 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 	table.Draw(shaderT);
 
 	//RENDERIZZO I BIRILLI
-	model = glm::mat4();
-	normal = glm::mat4();
+	model = glm::mat4(1.0f);
+	normal = glm::mat3(1.0f);
 
-	model = glm::translate(model, glm::vec3(0.0f, 11.0f, 0.0f));
-	model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
+	bodyPin->getMotionState()->getWorldTransform(transform);
+	transform.getOpenGLMatrix(matrix);
+
+	model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
+	model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
 	normal = glm::inverseTranspose(glm::mat3(view * model));
 
 	shaderT.setMat4("modelMatrix", model);
