@@ -110,7 +110,7 @@ void throw_ball(btRigidBody* ball);
 
 Physics poolSimulation;
 BulletDebugDrawer debugger;
-btRigidBody* playerBall;
+vector<btRigidBody*> playersBall;
 
 glm::vec3 selectedBallPos(0.0f);
 
@@ -120,7 +120,10 @@ glm::mat4 model(1.0f);
 glm::mat3 normal(1.0f);
 
 bool checkShoot = false;
-bool playerTwo = true;
+// Variabile booleana che utilizzo per switchare tra i due giocatori.
+// false=0 primo giocatore, biglia bianca.
+// true=1 secondo giocatore, biglia gialla
+bool player = false;
 
 int main() {
 	//INIZIALIZZO GLFW
@@ -238,6 +241,10 @@ int main() {
 	bodyBallYellow->setLinearFactor(btVector3(1, 0, 1));
 	bodyBallRed->setLinearFactor(btVector3(1, 0, 1));
 
+	//Inserisco le biglie all'interno del vettore per gestire i giocatori
+	playersBall.push_back(bodyBallWhite);
+	playersBall.push_back(bodyBallYellow);
+
 	//Carico la texture per il pavimento
 	GLuint textureFloor = load_texture("textures/floor.jpg");
 
@@ -263,7 +270,7 @@ int main() {
 	glm::vec3 position;
 
 	// Setto la biglia da cui comincerà il gioco
-	playerBall = bodyBallWhite;
+	//playersBall = bodyBallWhite;
 
 	//AVVIO IL RENDER LOOP
 	while (!glfwWindowShouldClose(window)) {
@@ -291,8 +298,8 @@ int main() {
 
 		model = mat4(1.0f);
 
-		linearVelocity = playerBall->getLinearVelocity();
-		//angularVelocity = playerBall->getAngularVelocity();
+		linearVelocity = playersBall[player]->getLinearVelocity();
+		//angularVelocity = playersBall->getAngularVelocity();
 
 //		out << currentFrame << endl;
 //		out << "LinearVelocity:\n( " << linearVelocity.getX() << ", " << linearVelocity.getY() << ", " << linearVelocity.getZ() << " )\n" << endl;
@@ -300,10 +307,8 @@ int main() {
 
 		if (check_idle_ball(linearVelocity) && checkShoot) {
 			// Non appena la biglia del giocatore si ferma, passo all'altro giocatore, spostando la camera sull'altra biglia
-			// TODO: come farlo???
-			playerBall = bodyBallYellow;
 
-			playerBall->getMotionState()->getWorldTransform(transform);
+			playersBall[!player]->getMotionState()->getWorldTransform(transform);
 			origin = transform.getOrigin();
 
 			position = glm::vec3(origin.getX(), origin.getY(), origin.getZ());
@@ -313,6 +318,8 @@ int main() {
 			view = camera.MoveCamera(position);
 
 			checkShoot = false;
+
+			player = !player;
 		}
 
 		glfwSwapBuffers(window);
@@ -368,7 +375,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		//cout << "Left button pressed at " << currentFrame << endl;
-		throw_ball(playerBall);
+		throw_ball(playersBall[player]);
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
@@ -381,27 +388,30 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 }
 
 void throw_ball(btRigidBody* ball) {
-	glm::mat4 screenToWorld = glm::inverse(projection * view);
+	// Se la palla non è ancora ferma, l'altro giocatore non può tirare.
+	if(!checkShoot){
+		glm::mat4 screenToWorld = glm::inverse(projection * view);
 
-	GLfloat shootInitialSpeed = 15.0f;
+		GLfloat shootInitialSpeed = 15.0f;
 
-	GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
-			y = -(mouseY / SCR_HEIGHT) * 2 + 1;
+		GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
+				y = -(mouseY / SCR_HEIGHT) * 2 + 1;
 
-	btVector3 impulse;
+		btVector3 impulse;
 
-	glm::vec4 mousePos = glm::vec4(x, y, 1.0f, 1.0f);
+		glm::vec4 mousePos = glm::vec4(x, y, 1.0f, 1.0f);
 
-	glm::vec4 direction = glm::normalize(screenToWorld * mousePos) * shootInitialSpeed;
+		glm::vec4 direction = glm::normalize(screenToWorld * mousePos) * shootInitialSpeed;
 
-	impulse = btVector3(direction.x, direction.y, direction.z);
+		impulse = btVector3(direction.x, direction.y, direction.z);
 
-	//cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
+		//cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
 
-	ball->activate(true);
-	ball->applyCentralImpulse(impulse);
+		ball->activate(true);
+		ball->applyCentralImpulse(impulse);
 
-	checkShoot = true;
+		checkShoot = true;
+	}
 }
 
 // Carico un'immagine e creo texture OpengGL
@@ -474,10 +484,6 @@ GLuint load_cubemap(vector<string> faces) {
 
 // Imposto lo shader e renderizzo i modelli degli oggetti senza texture
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow) {
-//	glm::mat4 model(1.0f);
-//	glm::mat4 normal(1.0f);
-//	glm::mat4 whitePos(1.0f);
-
 	GLfloat matrix[16];
 	btTransform transform;
 
@@ -514,8 +520,6 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	bodyWhite->getMotionState()->getWorldTransform(transform);
 	transform.getOpenGLMatrix(matrix);
 
-//	model = glm::translate(model, poolBallPos[0]);
-	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::make_mat4(matrix) * glm::scale(model, sphereSize);
 	normal = glm::inverseTranspose(glm::mat3(view * model));
 
@@ -533,8 +537,6 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	bodyRed->getMotionState()->getWorldTransform(transform);
 	transform.getOpenGLMatrix(matrix);
 
-//	model = glm::translate(model, poolBallPos[1]);
-	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::make_mat4(matrix) * glm::scale(model, sphereSize);
 	// se casto a mat3 una mat4, in automatico estraggo la sottomatrice 3x3 superiore sinistra
 	normal = glm::inverseTranspose(glm::mat3(view * model));
@@ -553,8 +555,6 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	bodyYellow->getMotionState()->getWorldTransform(transform);
 	transform.getOpenGLMatrix(matrix);
 
-//	model = glm::translate(model, poolBallPos[2]);
-	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::make_mat4(matrix) * glm::scale(model, sphereSize);
 	// se casto a mat3 una mat4, in automatico estraggo la sottomatrice 3x3 superiore sinistra
 	normal = glm::inverseTranspose(glm::mat3(view * model));
@@ -567,9 +567,6 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 
 // Imposto lo shader e renderizzo i modelli degli oggetti con texture
 void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin) {
-//	glm::mat4 model(1.0f);
-//	glm::mat4 normal(1.0f);
-
 	//RENDERIZZO IL TAVOLO
 	shaderT.Use();
 
@@ -601,7 +598,6 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 	normal = glm::mat3(1.0f);
 
 	model = glm::translate(model, glm::vec3(0.0f, 0.1f, -0.15f));
-	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(25.0f, 25.0f, 25.0f));
 	normal = glm::inverseTranspose(glm::mat3(view * model));
 
@@ -615,7 +611,6 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 	normal = glm::mat4();
 
 	model = glm::translate(model, glm::vec3(0.0f, 11.0f, 0.0f));
-	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
 	normal = glm::inverseTranspose(glm::mat3(view * model));
 
