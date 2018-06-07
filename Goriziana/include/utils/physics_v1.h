@@ -46,14 +46,14 @@ public:
         this->dispatcher = new btCollisionDispatcher(collisionConfiguration);
 
         ///btDbvtBroadphase is a good general purpose broadphase. You can also try out btAxis3Sweep.
-        this->overlappingPairCache = new btDbvtBroadphase();
+        this->overlappingPairCache = new btDbvtBroadphase(); // @suppress("Abstract class cannot be instantiated")
 
         // Imposto il metodo di integrazione numerica, che considera forze, constraint, collisioni ecc per calcolare posizioni e rotazioni dei corpi rigidi
         ///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
         this->solver = new btSequentialImpulseConstraintSolver;
 
         //  DynamicsWorld è la classe principale della simulazione fisica
-        this->dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,overlappingPairCache,solver,collisionConfiguration);
+        this->dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,overlappingPairCache,solver,collisionConfiguration); // @suppress("Abstract class cannot be instantiated")
 
         // imposto la forza di gravità
         this->dynamicsWorld->setGravity(btVector3(0,-9.82,0));
@@ -86,7 +86,8 @@ public:
             	cShape = new btSphereShape(size.x);
         	} // Capsule
         	else if (type == 2){
-        			cShape = new btCapsuleShape(size.x,size.y);
+        			btVector3 dim = btVector3(size.x, size.y, size.z);
+        			cShape = new btCylinderShape(dim);
         		}
 
         // aggiungo la Collision Shape alla lista

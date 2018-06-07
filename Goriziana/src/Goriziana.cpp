@@ -89,11 +89,11 @@ glm::vec3 poolBallPos[] = {
 };
 
 glm::vec3 poolPinPos[] = {
-	glm::vec3(0.70f, 7.0f, 0.0f), // birillo in alto
-	glm::vec3(0.0f, 7.0f, 0.70f), // birillo a destra
-	glm::vec3(-0.70f, 7.0f, 0.0f), // birillo in basso
-	glm::vec3(0.00f, 7.0f, -0.70f), // birillo a sinistra
-	glm::vec3(0.0f, 7.0f, 0.0f), // birillo al centro
+	glm::vec3(0.70f, 6.8f, 0.0f), // birillo in alto
+	glm::vec3(0.0f, 6.8f, 0.70f), // birillo a destra
+	glm::vec3(-0.70f, 6.8f, 0.0f), // birillo in basso
+	glm::vec3(0.00f, 6.8f, -0.70f), // birillo a sinistra
+	glm::vec3(0.0f, 6.8f, 0.0f), // birillo al centro
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -109,7 +109,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 GLuint load_texture(const char* path);
 GLuint load_cubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
-void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin);
+void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
 bool check_idle_ball(btVector3 linearVelocity);
 
@@ -198,18 +198,11 @@ int main() {
 	//Model modelRoom("../../table/resource/Room.obj");
 	Model modelTable("models/table/pooltable.obj");
 	Model modelBall("models/ball/ball.obj");
-	Model modelPin("models/pin/High_Poly.obj");
-	Model modelPlane("models/plane/plane.obj");
+	Model modelPin("models/pin/pin.obj");
 	Model modelSkybox("models/cube/cube.obj");
 
-	//CREO IL CORPO RIGIDO DA ASSEGNARE AL PIANO
-	glm::vec3 bodyPlaneSize = glm::vec3(10.0f, 0.1f, 10.0f);
-	glm::vec3 bodyPlaneRotation = glm::vec3(0.0f, 0.0f, 0.0f);
-
-	btRigidBody* bodyPlane = poolSimulation.createRigidBody(0, poolPlanePos, bodyPlaneSize, bodyPlaneRotation, 0.0, 0.3, 0.3);
-
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AL TAVOLO
-	glm::vec3 bodyTablePos = glm::vec3(0.0f, 6.48f, 0.0f);
+	glm::vec3 bodyTablePos = glm::vec3(0.0f, 6.5f, 0.0f);
 	glm::vec3 bodyTableSize = glm::vec3(12.0f, 0.1f, 5.2f);
 	glm::vec3 bodyTableRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -241,11 +234,11 @@ int main() {
 	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.3, 0.5);
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
-	glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.15f, 0.09f);
+	glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.2f, 0.09f);
 	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	for (int i = 0; i < 5; i++){
-		btRigidBody* bodyPin = poolSimulation.createRigidBody(2, poolPinPos[i], bodyPinSize, bodyPinRotation, 0.7, 0.3, 0.3);
+		btRigidBody* bodyPin = poolSimulation.createRigidBody(2, poolPinPos[i], bodyPinSize, bodyPinRotation, 0.5, 0.3, 0.3);
 		vectorPin.push_back(bodyPin);
 	}
 
@@ -318,7 +311,7 @@ int main() {
 
 		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
 
-		draw_model_texture(shaderTexture, modelPlane, bodyPlane, textureFloor, modelTable, modelPin, vectorPin);
+		draw_model_texture(shaderTexture, textureFloor, modelTable, modelPin, vectorPin);
 
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
 
@@ -389,7 +382,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	}
 
 	GLfloat xOffset = xpos - lastX;
-	//GLfloat yOffset = lastY - ypos; // Inverto la sottrazione per l'asse è negativo in questo caso
+	//GLfloat yOffset = lastY - ypos;
 
 	lastX = xpos;
 	lastY = ypos;
@@ -596,7 +589,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 }
 
 // Imposto lo shader e renderizzo i modelli degli oggetti con texture
-void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin) {
+void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin) {
 	GLfloat matrix[16];
 	btTransform transform;
 
@@ -630,7 +623,7 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 	model = glm::mat4(1.0f);
 	normal = glm::mat3(1.0f);
 
-	model = glm::translate(model, glm::vec3(0.0f, 0.1f, -0.15f));
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -0.15f));
 	model = glm::scale(model, glm::vec3(25.0f, 25.0f, 25.0f));
 	normal = glm::inverseTranspose(glm::mat3(view * model));
 
@@ -647,7 +640,7 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 		vectorPin[i]->getMotionState()->getWorldTransform(transform);
 		transform.getOpenGLMatrix(matrix);
 
-		model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
+		//model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
 		model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
 		normal = glm::inverseTranspose(glm::mat3(view * model));
 
@@ -656,30 +649,6 @@ void draw_model_texture(Shader &shaderT, Model &plane, btRigidBody* bodyPlane, G
 
 		pin.Draw(shaderT);
 	}
-
-	//RENDERIZZO IL PIANO
-//	bodyPlane->getMotionState()->getWorldTransform(transform);
-//	transform.getOpenGLMatrix(matrix);
-//
-//	shaderT.setInt("tex",0);
-//	shaderT.setFloat("repeat",2.0f);
-//
-//	glActiveTexture(GL_TEXTURE0);
-//	glBindTexture(GL_TEXTURE_2D, texture);
-//
-//	model = glm::mat4(1.0f);
-//	normal = glm::mat4(1.0f);
-//
-//	//model = glm::translate(model, poolPlanePos);
-//	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-//
-//	model = glm::scale(model, glm::vec3(500.0f, 500.0f, 1.0f));
-//	normal = glm::inverseTranspose(glm::mat3(view*model));
-//
-//	shaderT.setMat4("modelMatrix", model);//model
-//	shaderT.setMat3("normalMatrix",normal);
-//
-//	plane.Draw(shaderT);
 }
 
 // Imposto lo shader e renderizzo la Cubemap
