@@ -214,24 +214,24 @@ int main() {
 	glm::vec3 bodyTableLSSize = glm::vec3(12.0f, 1.0f, 0.1f);
 	glm::vec3 bodyTableLSRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.5, 0.5);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.5, 0.7);
 
 	//LATO LUNGO ANTERIORE
 	bodyTableLSPos = glm::vec3(0.0f, 6.8f, 5.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.5, 0.5);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.5, 0.7);
 
 	//LATO CORTO SINISTRO
 	glm::vec3 bodyTableSSPos = glm::vec3(-11.65f, 6.8f, 0.0f);
 	glm::vec3 bodyTableSSSize = glm::vec3(0.1f, 1.0f, 5.2f);
 	glm::vec3 bodyTableSSRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.5, 0.5);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.5, 0.7);
 
 	//LATO CORTO DESTRO
 	bodyTableSSPos = glm::vec3(11.75f, 6.8f, 0.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.5, 0.5);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.5, 0.7);
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
 	glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.2f, 0.09f);
@@ -246,9 +246,9 @@ int main() {
 	glm::vec3 bodyBallRadius = sphereSize;
 	glm::vec3 bodyBallRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	btRigidBody* bodyBallWhite = poolSimulation.createRigidBody(1, poolBallPos[0], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.3);
-	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.3);
-	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.3);
+	btRigidBody* bodyBallWhite = poolSimulation.createRigidBody(1, poolBallPos[0], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.4);
+	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.4);
+	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.4);
 
 	//Lo uso per evitare che la biglia salti
 	bodyBallWhite->setLinearFactor(btVector3(1, 0, 1));
@@ -257,7 +257,9 @@ int main() {
 
 	bodyBallWhite->setAngularFactor(0.1);
 	bodyBallYellow->setAngularFactor(0.1);
-	bodyBallRed->setAngularFactor(0.1);
+	bodyBallRed->setAngularFactor(1.0);
+
+	//bodyBallRed->setSpinningFriction(0.1);
 
 	//Inserisco le biglie all'interno del vettore per gestire i giocatori
 	playersBall.push_back(bodyBallWhite);
@@ -324,9 +326,9 @@ int main() {
 		linearVelocity = playersBall[player]->getLinearVelocity();
 		//angularVelocity = playersBall->getAngularVelocity();
 
-		out << currentFrame << endl;
+//		out << currentFrame << endl;
 //		out << "LinearVelocity:\n( " << linearVelocity.getX() << ", " << linearVelocity.getY() << ", " << linearVelocity.getZ() << " )\n" << endl;
-		out << "AngularVelocity:\n( " << angularVelocity.getX() << ", " << angularVelocity.getY() << ", " << angularVelocity.getZ() << " )\n" << endl;
+//		out << "AngularVelocity:\n( " << angularVelocity.getX() << ", " << angularVelocity.getY() << ", " << angularVelocity.getZ() << " )\n" << endl;
 
 		if (check_idle_ball(linearVelocity) && checkShoot) {
 			// Non appena la biglia del giocatore si ferma, passo all'altro giocatore, spostando la camera sull'altra biglia

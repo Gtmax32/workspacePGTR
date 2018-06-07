@@ -133,8 +133,8 @@ public:
         if (type == 1){
             // nella simulazione fisica, la sfera tocca il piano solo in un punto, e questo impedisce la corretta applicazione della frizione tra piano e sfera. 
             // La rolling friction aggira il problema, e la unisco quindi a un fattore di damping angolare (che quindi applica una forza di resistenza durante la rotazione), in modo da far fermare la sfera dopo un po' di tempo.
-            rbInfo.m_angularDamping =0.6;
-            rbInfo.m_rollingFriction = 0.6;
+            rbInfo.m_angularDamping =0.4;
+            rbInfo.m_rollingFriction = 0.4;
         }
 
         // creo il corpo rigido
