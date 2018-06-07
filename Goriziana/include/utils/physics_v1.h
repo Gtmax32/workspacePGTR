@@ -18,6 +18,7 @@ Universita' degli Studi di Milano
 #pragma once
 
 #include <bullet/btBulletDynamicsCommon.h>
+#include <bullet/btBulletCollisionCommon.h>
 
 /////////////////// classe Physics ///////////////////////
 class Physics
@@ -84,10 +85,19 @@ public:
         // Sphere (in questo caso prendo solo la prima componente di size, che contiene il raggio)
         else if (type == 1) {
             	cShape = new btSphereShape(size.x);
-        	} // Capsule
+        	} // Cylinder
         	else if (type == 2){
         			btVector3 dim = btVector3(size.x, size.y, size.z);
-        			cShape = new btCylinderShape(dim);
+
+        			btTransform localTransform;
+        			localTransform.setIdentity();
+        			localTransform.setOrigin(btVector3(0.0, 0.2, 0.0));
+
+        			btCompoundShape* shape = new btCompoundShape();
+        			shape->addChildShape(localTransform, new btCylinderShape(dim));
+        			cShape = shape;
+
+//        			cShape = new btCylinderShape(dim);
         		}
 
         // aggiungo la Collision Shape alla lista
@@ -116,15 +126,15 @@ public:
         // imposto la struttura dati per creare il corpo rigido
         btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,motionState,cShape,localInertia);
         // imposto valori di frizione e restituzione
-        rbInfo.m_friction = friction;    
+        rbInfo.m_friction = friction;
         rbInfo.m_restitution = restitution;
 
         // se è una sfera
         if (type == 1){
             // nella simulazione fisica, la sfera tocca il piano solo in un punto, e questo impedisce la corretta applicazione della frizione tra piano e sfera. 
             // La rolling friction aggira il problema, e la unisco quindi a un fattore di damping angolare (che quindi applica una forza di resistenza durante la rotazione), in modo da far fermare la sfera dopo un po' di tempo.
-            rbInfo.m_angularDamping =0.3;
-            rbInfo.m_rollingFriction = 0.3;
+            rbInfo.m_angularDamping =0.6;
+            rbInfo.m_rollingFriction = 0.6;
         }
 
         // creo il corpo rigido

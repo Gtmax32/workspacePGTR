@@ -198,7 +198,7 @@ int main() {
 	//Model modelRoom("../../table/resource/Room.obj");
 	Model modelTable("models/table/pooltable.obj");
 	Model modelBall("models/ball/ball.obj");
-	Model modelPin("models/pin/pin.obj");
+	Model modelPin("models/pin/scaledPin.obj");
 	Model modelSkybox("models/cube/cube.obj");
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AL TAVOLO
@@ -206,39 +206,39 @@ int main() {
 	glm::vec3 bodyTableSize = glm::vec3(12.0f, 0.1f, 5.2f);
 	glm::vec3 bodyTableRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 0.8, 0.3);
+	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 1.0, 0.1);
 
 	//CREO I BORDI DEL TAVOLO
 	//LATO LUNGO POSTERIORE
-	glm::vec3 bodyTableLSPos = glm::vec3(0.0f, 6.8f, -5.1f);
+	glm::vec3 bodyTableLSPos = glm::vec3(0.0f, 6.8f, -5.0f);
 	glm::vec3 bodyTableLSSize = glm::vec3(12.0f, 1.0f, 0.1f);
 	glm::vec3 bodyTableLSRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.3, 0.5);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.5, 0.5);
 
 	//LATO LUNGO ANTERIORE
-	bodyTableLSPos = glm::vec3(0.0f, 6.8f, 5.1f);
+	bodyTableLSPos = glm::vec3(0.0f, 6.8f, 5.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.3, 0.5);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.5, 0.5);
 
 	//LATO CORTO SINISTRO
-	glm::vec3 bodyTableSSPos = glm::vec3(-11.7f, 6.8f, 0.0f);
+	glm::vec3 bodyTableSSPos = glm::vec3(-11.65f, 6.8f, 0.0f);
 	glm::vec3 bodyTableSSSize = glm::vec3(0.1f, 1.0f, 5.2f);
 	glm::vec3 bodyTableSSRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.3, 0.5);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.5, 0.5);
 
 	//LATO CORTO DESTRO
-	bodyTableSSPos = glm::vec3(11.8f, 6.8f, 0.0f);
+	bodyTableSSPos = glm::vec3(11.75f, 6.8f, 0.0f);
 
-	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.3, 0.5);
+	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.5, 0.5);
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
 	glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.2f, 0.09f);
 	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	for (int i = 0; i < 5; i++){
-		btRigidBody* bodyPin = poolSimulation.createRigidBody(2, poolPinPos[i], bodyPinSize, bodyPinRotation, 0.5, 0.3, 0.3);
+		btRigidBody* bodyPin = poolSimulation.createRigidBody(2, poolPinPos[i], bodyPinSize, bodyPinRotation, 0.1, 0.1, 0.1);
 		vectorPin.push_back(bodyPin);
 	}
 
@@ -246,14 +246,18 @@ int main() {
 	glm::vec3 bodyBallRadius = sphereSize;
 	glm::vec3 bodyBallRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	btRigidBody* bodyBallWhite = poolSimulation.createRigidBody(1, poolBallPos[0], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
-	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
-	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 0.3, 0.3);
+	btRigidBody* bodyBallWhite = poolSimulation.createRigidBody(1, poolBallPos[0], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.3);
+	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.3);
+	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.3);
 
 	//Lo uso per evitare che la biglia salti
 	bodyBallWhite->setLinearFactor(btVector3(1, 0, 1));
 	bodyBallYellow->setLinearFactor(btVector3(1, 0, 1));
 	bodyBallRed->setLinearFactor(btVector3(1, 0, 1));
+
+	bodyBallWhite->setAngularFactor(0.1);
+	bodyBallYellow->setAngularFactor(0.1);
+	bodyBallRed->setAngularFactor(0.1);
 
 	//Inserisco le biglie all'interno del vettore per gestire i giocatori
 	playersBall.push_back(bodyBallWhite);
@@ -274,7 +278,7 @@ int main() {
 	camera.setObjectPos(selectedBallPos);
 
 	// File di log inserito per debuggare la biglia
-	//ofstream out("log.txt");
+	ofstream out("log.txt");
 
 	btTransform transform;
 	btVector3 linearVelocity, angularVelocity, origin;
@@ -320,9 +324,9 @@ int main() {
 		linearVelocity = playersBall[player]->getLinearVelocity();
 		//angularVelocity = playersBall->getAngularVelocity();
 
-//		out << currentFrame << endl;
+		out << currentFrame << endl;
 //		out << "LinearVelocity:\n( " << linearVelocity.getX() << ", " << linearVelocity.getY() << ", " << linearVelocity.getZ() << " )\n" << endl;
-//		out << "AngularVelocity:\n( " << angularVelocity.getX() << ", " << angularVelocity.getY() << ", " << angularVelocity.getZ() << " )\n" << endl;
+		out << "AngularVelocity:\n( " << angularVelocity.getX() << ", " << angularVelocity.getY() << ", " << angularVelocity.getZ() << " )\n" << endl;
 
 		if (check_idle_ball(linearVelocity) && checkShoot) {
 			// Non appena la biglia del giocatore si ferma, passo all'altro giocatore, spostando la camera sull'altra biglia
@@ -352,7 +356,7 @@ int main() {
 	poolSimulation.Clear();
 
 	// Chiudo il file di log
-	//out.close();
+	out.close();
 
 	glfwTerminate();
 
@@ -415,12 +419,12 @@ void throw_ball(btRigidBody* ball) {
 	if (!checkShoot) {
 		glm::mat4 screenToWorld = glm::inverse(projection * view);
 
-		GLfloat shootInitialSpeed = 15.0f;
+		GLfloat shootInitialSpeed = 10.0f;
 
 		GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
 				y = -(mouseY / SCR_HEIGHT) * 2 + 1;
 
-		btVector3 impulse;
+		btVector3 impulse, relPos;
 
 		glm::vec4 mousePos = glm::vec4(x, y, 1.0f, 1.0f);
 
@@ -428,10 +432,12 @@ void throw_ball(btRigidBody* ball) {
 
 		impulse = btVector3(direction.x, direction.y, direction.z);
 
+		relPos = btVector3(1.0, 1.0, 1.0);
+
 		//cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
 
 		ball->activate(true);
-		ball->applyCentralImpulse(impulse);
+		ball->applyImpulse(impulse, relPos);
 
 		checkShoot = true;
 	}
@@ -592,6 +598,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin) {
 	GLfloat matrix[16];
 	btTransform transform;
+	//glm::mat4 physicsMatrix(1.0f);
 
 	//RENDERIZZO IL TAVOLO
 	shaderT.Use();
@@ -641,7 +648,7 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 		transform.getOpenGLMatrix(matrix);
 
 		//model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
-		model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
+		model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.027f, 0.027f, 0.027f));
 		normal = glm::inverseTranspose(glm::mat3(view * model));
 
 		shaderT.setMat4("modelMatrix", model);
