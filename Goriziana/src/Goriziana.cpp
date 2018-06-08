@@ -206,7 +206,7 @@ int main() {
 	glm::vec3 bodyTableSize = glm::vec3(12.0f, 0.1f, 5.2f);
 	glm::vec3 bodyTableRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 1.0, 0.1);
+	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 1.0, 0.0);
 
 	//CREO I BORDI DEL TAVOLO
 	//LATO LUNGO POSTERIORE
@@ -238,7 +238,9 @@ int main() {
 	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	for (int i = 0; i < 5; i++){
-		btRigidBody* bodyPin = poolSimulation.createRigidBody(2, poolPinPos[i], bodyPinSize, bodyPinRotation, 0.1, 0.1, 0.1);
+		btRigidBody* bodyPin = poolSimulation.createRigidBody(2, poolPinPos[i], bodyPinSize, bodyPinRotation, 0.1, 0.4, 0.0);
+		bodyPin->setDamping(0.4,0.4);
+		//bodyPin->setRollingFriction(0.1);
 		vectorPin.push_back(bodyPin);
 	}
 
@@ -246,9 +248,9 @@ int main() {
 	glm::vec3 bodyBallRadius = sphereSize;
 	glm::vec3 bodyBallRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	btRigidBody* bodyBallWhite = poolSimulation.createRigidBody(1, poolBallPos[0], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.4);
-	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.4);
-	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 1.0, 0.4);
+	btRigidBody* bodyBallWhite = poolSimulation.createRigidBody(1, poolBallPos[0], bodyBallRadius, bodyBallRotation, 1.0, 0.7, 0.4);
+	btRigidBody* bodyBallYellow = poolSimulation.createRigidBody(1, poolBallPos[1], bodyBallRadius, bodyBallRotation, 1.0, 0.7, 0.4);
+	btRigidBody* bodyBallRed = poolSimulation.createRigidBody(1, poolBallPos[2], bodyBallRadius, bodyBallRotation, 1.0, 0.7, 0.4);
 
 	//Lo uso per evitare che la biglia salti
 	bodyBallWhite->setLinearFactor(btVector3(1, 0, 1));
@@ -258,8 +260,6 @@ int main() {
 	bodyBallWhite->setAngularFactor(0.1);
 	bodyBallYellow->setAngularFactor(0.1);
 	bodyBallRed->setAngularFactor(1.0);
-
-	//bodyBallRed->setSpinningFriction(0.1);
 
 	//Inserisco le biglie all'interno del vettore per gestire i giocatori
 	playersBall.push_back(bodyBallWhite);
@@ -421,7 +421,7 @@ void throw_ball(btRigidBody* ball) {
 	if (!checkShoot) {
 		glm::mat4 screenToWorld = glm::inverse(projection * view);
 
-		GLfloat shootInitialSpeed = 10.0f;
+		GLfloat shootInitialSpeed = 15.0f;
 
 		GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
 				y = -(mouseY / SCR_HEIGHT) * 2 + 1;

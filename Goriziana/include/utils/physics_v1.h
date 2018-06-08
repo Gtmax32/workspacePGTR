@@ -93,8 +93,10 @@ public:
         			localTransform.setIdentity();
         			localTransform.setOrigin(btVector3(0.0, 0.2, 0.0));
 
+        			btCylinderShape* cylinder = new btCylinderShape(dim);
+
         			btCompoundShape* shape = new btCompoundShape();
-        			shape->addChildShape(localTransform, new btCylinderShape(dim));
+        			shape->addChildShape(localTransform, cylinder);
         			cShape = shape;
 
 //        			cShape = new btCylinderShape(dim);
@@ -122,7 +124,7 @@ public:
         // inizializzo il Motion State dell'oggetto sulla base della trasformazione create.
         // Tramite il Motion State, la simulazione fisica partirà considerando i parametri di traslazione e rotazione iniziali dell'oggetto definiti dall'utente.        
         btDefaultMotionState* motionState = new btDefaultMotionState(objTransform);
-        
+
         // imposto la struttura dati per creare il corpo rigido
         btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,motionState,cShape,localInertia);
         // imposto valori di frizione e restituzione
@@ -131,10 +133,11 @@ public:
 
         // se è una sfera
         if (type == 1){
-            // nella simulazione fisica, la sfera tocca il piano solo in un punto, e questo impedisce la corretta applicazione della frizione tra piano e sfera. 
+            // nella simulazione fisica, la sfera tocca il piano solo in un punto, e questo impedisce la corretta applicazione della frizione tra piano e sfera.
             // La rolling friction aggira il problema, e la unisco quindi a un fattore di damping angolare (che quindi applica una forza di resistenza durante la rotazione), in modo da far fermare la sfera dopo un po' di tempo.
             rbInfo.m_angularDamping =0.4;
             rbInfo.m_rollingFriction = 0.4;
+            rbInfo.m_linearDamping = 0.3;
         }
 
         // creo il corpo rigido
