@@ -184,7 +184,7 @@ public:
 
 		vec3 hipotenuse = newPosition - this->Position;
 		vec3 direction = hipotenuse - this->Front * distance;
-		direction.y += 0.5f;
+		direction.y += 1.0f;
 
 		mat4 matrix = translate(mat4(1.0f), direction);
 

@@ -83,17 +83,17 @@ glm::vec3 sphereSize = glm::vec3(0.5f, 0.5f, 0.5f);
 
 //Posizione delle biglie del gioco
 glm::vec3 poolBallPos[] = {
-	glm::vec3(-5.5f, 7.0f, -2.2f), // biglia bianca
-	glm::vec3(-5.5f, 7.0f, 2.2f), // biglia gialla
-	glm::vec3(5.5f, 7.0f, 0.0f) // biglia rossa
+	glm::vec3(-5.5f, 6.62f, -2.2f), // biglia bianca
+	glm::vec3(-5.5f, 6.62f, 2.2f), // biglia gialla
+	glm::vec3(5.5f, 6.62f, 0.0f) // biglia rossa
 };
 
 glm::vec3 poolPinPos[] = {
-	glm::vec3(0.70f, 6.8f, 0.0f), // birillo in alto
-	glm::vec3(0.0f, 6.8f, 0.70f), // birillo a destra
-	glm::vec3(-0.70f, 6.8f, 0.0f), // birillo in basso
-	glm::vec3(0.00f, 6.8f, -0.70f), // birillo a sinistra
-	glm::vec3(0.0f, 6.8f, 0.0f), // birillo al centro
+	glm::vec3(0.70f, 6.7f, 0.0f), // birillo in alto
+	glm::vec3(0.0f, 6.7f, 0.70f), // birillo a destra
+	glm::vec3(-0.70f, 6.7f, 0.0f), // birillo in basso
+	glm::vec3(0.00f, 6.7f, -0.70f), // birillo a sinistra
+	glm::vec3(0.0f, 6.7f, 0.0f), // birillo al centro
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -202,34 +202,34 @@ int main() {
 	Model modelSkybox("models/cube/cube.obj");
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AL TAVOLO
-	glm::vec3 bodyTablePos = glm::vec3(0.0f, 6.5f, 0.0f);
-	glm::vec3 bodyTableSize = glm::vec3(12.0f, 0.1f, 5.2f);
+	glm::vec3 bodyTablePos = glm::vec3(0.0f, 6.02f, 0.0f);
+	glm::vec3 bodyTableSize = glm::vec3(12.3f, 0.1f, 5.5f);
 	glm::vec3 bodyTableRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 0.6, 0.0);
 
 	//CREO I BORDI DEL TAVOLO
 	//LATO LUNGO POSTERIORE
-	glm::vec3 bodyTableLSPos = glm::vec3(0.0f, 6.8f, -5.0f);
-	glm::vec3 bodyTableLSSize = glm::vec3(12.0f, 1.0f, 0.1f);
+	glm::vec3 bodyTableLSPos = glm::vec3(0.0f, 6.8f, -5.5f);
+	glm::vec3 bodyTableLSSize = glm::vec3(12.3f, 1.0f, 0.1f);
 	glm::vec3 bodyTableLSRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.5, 0.7);
 
 	//LATO LUNGO ANTERIORE
-	bodyTableLSPos = glm::vec3(0.0f, 6.8f, 5.0f);
+	bodyTableLSPos = glm::vec3(0.0f, 6.8f, 5.5f);
 
 	bodyTable = poolSimulation.createRigidBody(0, bodyTableLSPos, bodyTableLSSize, bodyTableLSRotation, 0.0, 0.5, 0.7);
 
 	//LATO CORTO SINISTRO
-	glm::vec3 bodyTableSSPos = glm::vec3(-11.65f, 6.8f, 0.0f);
-	glm::vec3 bodyTableSSSize = glm::vec3(0.1f, 1.0f, 5.2f);
+	glm::vec3 bodyTableSSPos = glm::vec3(-12.13f, 6.8f, 0.0f);
+	glm::vec3 bodyTableSSSize = glm::vec3(0.1f, 1.0f, 5.5f);
 	glm::vec3 bodyTableSSRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.5, 0.7);
 
 	//LATO CORTO DESTRO
-	bodyTableSSPos = glm::vec3(11.75f, 6.8f, 0.0f);
+	bodyTableSSPos = glm::vec3(12.2f, 6.8f, 0.0f);
 
 	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.5, 0.7);
 

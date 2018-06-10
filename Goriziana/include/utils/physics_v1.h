@@ -143,10 +143,6 @@ public:
         // creo il corpo rigido
         btRigidBody* body = new btRigidBody(rbInfo);
 
-        if (type == 2){
-        	body->setAnisotropicFriction(cShape->getAnisotropicRollingFrictionDirection(),btCollisionObject::CF_ANISOTROPIC_FRICTION_DISABLED);
-        }
-
         //add the body to the dynamics world
         this->dynamicsWorld->addRigidBody(body);
 
