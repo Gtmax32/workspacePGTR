@@ -196,7 +196,7 @@ int main() {
 
 	//UTILIZZO LA CLASSE MODEL CREATA PER CARICARE E VISUALIZZARE IL MODELLO 3D
 	//Model modelRoom("../../table/resource/Room.obj");
-	Model modelTable("models/table/pooltable.obj");
+	Model modelTable("models/table/gTable.obj");
 	Model modelBall("models/ball/ball.obj");
 	Model modelPin("models/pin/scaledPin.obj");
 	Model modelSkybox("models/cube/cube.obj");
