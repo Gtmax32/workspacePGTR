@@ -206,7 +206,7 @@ int main() {
 	glm::vec3 bodyTableSize = glm::vec3(12.0f, 0.1f, 5.2f);
 	glm::vec3 bodyTableRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 1.0, 0.0);
+	btRigidBody* bodyTable = poolSimulation.createRigidBody(0, bodyTablePos, bodyTableSize, bodyTableRotation, 0.0, 0.6, 0.0);
 
 	//CREO I BORDI DEL TAVOLO
 	//LATO LUNGO POSTERIORE
