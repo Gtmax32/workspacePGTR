@@ -89,11 +89,11 @@ glm::vec3 poolBallPos[] = {
 };
 
 glm::vec3 poolPinPos[] = {
-	glm::vec3(0.70f, 6.7f, 0.0f), // birillo in alto
-	glm::vec3(0.0f, 6.7f, 0.70f), // birillo a destra
-	glm::vec3(-0.70f, 6.7f, 0.0f), // birillo in basso
-	glm::vec3(0.00f, 6.7f, -0.70f), // birillo a sinistra
-	glm::vec3(0.0f, 6.7f, 0.0f), // birillo al centro
+	glm::vec3(0.70f, 6.40f, 0.0f), // birillo in alto
+	glm::vec3(0.0f, 6.40f, 0.70f), // birillo a destra
+	glm::vec3(-0.70f, 6.40f, 0.0f), // birillo in basso
+	glm::vec3(0.00f, 6.40f, -0.70f), // birillo a sinistra
+	glm::vec3(0.0f, 6.40f, 0.0f), // birillo al centro
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -195,9 +195,9 @@ int main() {
 	Shader shaderSkybox("shaders/shaderSkybox.vert", "shaders/shaderSkybox.frag");
 
 	//UTILIZZO LA CLASSE MODEL CREATA PER CARICARE E VISUALIZZARE IL MODELLO 3D
-	//Model modelRoom("../../table/resource/Room.obj");
 	Model modelTable("models/table/gTable.obj");
 	Model modelBall("models/ball/ball.obj");
+	//Model modelPin("models/pin/cylinder.obj");
 	Model modelPin("models/pin/scaledPin.obj");
 	Model modelSkybox("models/cube/cube.obj");
 
@@ -234,7 +234,10 @@ int main() {
 	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.5, 0.7);
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
+	// Dimensione rigibody per modello birillo
 	glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.2f, 0.09f);
+	// Dimensione rigibody per modello cilindro
+	//glm::vec3 bodyPinSize = glm::vec3(0.1f, 0.18f, 0.1f);
 	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	for (int i = 0; i < 5; i++){
@@ -649,7 +652,10 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 		vectorPin[i]->getMotionState()->getWorldTransform(transform);
 		transform.getOpenGLMatrix(matrix);
 
-		//model = glm::translate(model, glm::vec3(0.0f, -0.2f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
+		// Scala per modello cilindro
+		//model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));
+		// Scala per modello birillo
 		model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.027f, 0.027f, 0.027f));
 		normal = glm::inverseTranspose(glm::mat3(view * model));
 

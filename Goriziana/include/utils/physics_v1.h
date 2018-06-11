@@ -91,7 +91,7 @@ public:
 
         			btTransform localTransform;
         			localTransform.setIdentity();
-        			localTransform.setOrigin(btVector3(0.0, 0.2, 0.0));
+        			localTransform.setOrigin(btVector3(0.0, 0.1, 0.0));
 
         			btCylinderShape* cylinder = new btCylinderShape(dim);
 
