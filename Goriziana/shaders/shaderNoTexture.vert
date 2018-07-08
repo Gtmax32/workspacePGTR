@@ -20,7 +20,7 @@ Universita' degli Studi di Milano
 #version 330 core
 
 // numero di luci nella mia scena
-#define NR_LIGHTS 3
+#define NR_LIGHTS 1
 
 // posizione vertice in coordinate mondo
 layout (location = 0) in vec3 position;
@@ -38,10 +38,10 @@ uniform mat4 projectionMatrix;
 uniform mat3 normalMatrix;
 
 // vettore di direzioni di incidenza della luce (passato da applicazione)
-uniform vec3 lights[NR_LIGHTS];
+uniform vec3 light;
 
 // direzioni di incidenza della luce (in coordinate vista)
-out vec3 lightDirs[NR_LIGHTS];
+out vec3 lightDir;
 
 // normale (in coordinate vista)
 out vec3 vNormal;
@@ -64,12 +64,15 @@ void main(){
 	vNormal = normalize( normalMatrix * normal );
 	
 	// calcolo del vettore di incidenza della luce (per tutte le luci)
-	for (int i=0;i<NR_LIGHTS;i++){
+	/*for (int i=0;i<NR_LIGHTS;i++){
 		// calcolo del vettore di incidenza della luce.
 		vec4 lightPos = viewMatrix  * vec4(lights[i], 1.0);
 		lightDirs[i] = lightPos.xyz - mvPosition.xyz;
-	}
-
+	}*/
+	
+	vec4 lightPos = viewMatrix  * vec4(light, 1.0);
+	lightDir = lightPos.xyz - mvPosition.xyz;
+	
 	// calcolo posizione vertici in coordinate vista
 	gl_Position = projectionMatrix * mvPosition;
 

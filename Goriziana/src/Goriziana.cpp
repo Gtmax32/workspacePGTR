@@ -61,7 +61,8 @@ GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
 // posizioni delle mie pointlight
-glm::vec3 lightPositions[] = { glm::vec3(-5.0f, 15.0f, 0.0f), glm::vec3(0.0f, 15.0f, 0.0f), glm::vec3(5.0f, 15.0f, 0.0f), };
+//glm::vec3 lightPositions[] = { glm::vec3(-5.0f, 15.0f, 0.0f), glm::vec3(0.0f, 15.0f, 0.0f), glm::vec3(5.0f, 15.0f, 0.0f), };
+glm::vec3 lightPos = glm::vec3(-8.5f, 11.0f, -7.0f);
 
 // Uniform da passare agli shader
 glm::vec3 specularColor(1.0f, 1.0f, 1.0f);
@@ -111,6 +112,7 @@ GLuint load_cubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
 void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
+void draw_light_origin(Shader &shaderLightCube, Model &modelLightCube);
 bool check_idle_ball(btVector3 linearVelocity);
 
 // Funzioni per gestire il gioco
@@ -193,6 +195,7 @@ int main() {
 	Shader shaderTexture("shaders/shaderTexture.vert", "shaders/shaderTexture.frag");
 	Shader shaderDebugger("shaders/shaderDebug.vert", "shaders/shaderDebug.frag");
 	Shader shaderSkybox("shaders/shaderSkybox.vert", "shaders/shaderSkybox.frag");
+	Shader shaderLightCube("shaders/shaderLight.vert", "shaders/shaderLight.frag");
 
 	//UTILIZZO LA CLASSE MODEL CREATA PER CARICARE E VISUALIZZARE IL MODELLO 3D
 	Model modelTable("models/table/gTable.obj");
@@ -324,6 +327,8 @@ int main() {
 
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
 
+		draw_light_origin(shaderLightCube, modelBall);
+
 		model = mat4(1.0f);
 
 		linearVelocity = playersBall[player]->getLinearVelocity();
@@ -357,6 +362,7 @@ int main() {
 	shaderNoTexture.Delete();
 	shaderDebugger.Delete();
 	shaderSkybox.Delete();
+	shaderLightCube.Delete();
 
 	poolSimulation.Clear();
 
@@ -530,10 +536,11 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	shaderNT.setVec3("specularColor", specularColor);
 
 	// Per ogni luce nello shaderNT, passo la posizione corrispondente
-	for (GLuint i = 0; i < NR_LIGHTS; i++) {
-		string number = to_string(i);
-		shaderNT.setVec3(("lights[" + number + "]").c_str(), lightPositions[i]);
-	}
+//	for (GLuint i = 0; i < NR_LIGHTS; i++) {
+//		string number = to_string(i);
+//		shaderNT.setVec3(("lights[" + number + "]").c_str(), lightPositions[i]);
+//	}
+	shaderNT.setVec3("light", lightPos);
 
 	shaderNT.setFloat("Kd", Kd);
 	shaderNT.setFloat("Ka", Ka);
@@ -612,10 +619,11 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 	shaderT.setVec3("specularColor", specularColor);
 
 	// Per ogni luce nello shaderT, passo la posizione corrispondente
-	for (GLuint i = 0; i < NR_LIGHTS; i++) {
-		string number = to_string(i);
-		shaderT.setVec3(("lights[" + number + "]").c_str(), lightPositions[i]);
-	}
+//	for (GLuint i = 0; i < NR_LIGHTS; i++) {
+//		string number = to_string(i);
+//		shaderT.setVec3(("lights[" + number + "]").c_str(), lightPositions[i]);
+//	}
+	shaderT.setVec3("light", lightPos);
 
 	shaderT.setFloat("Kd", Kd);
 	shaderT.setFloat("Ka", Ka);
@@ -683,6 +691,20 @@ void draw_skybox(Shader &shaderSB, Model &box, GLuint texture) {
 	box.Draw(shaderSB);
 
 	glDepthFunc(GL_LESS);
+}
+
+void draw_light_origin(Shader &shader, Model &modelLight){
+	model = glm::mat4(1.0f);
+
+	model = glm::translate(model, glm::vec3(-5.4f, 5.4f, -10.0f));
+	model = glm::scale(model, glm::vec3(0.5f));
+
+	shader.Use();
+	shader.setMat4("projectionMatrix", projection);
+	shader.setMat4("viewMatrix", view);
+	shader.setMat4("modelMatrix", model);
+
+	modelLight.Draw(shader);
 }
 
 bool check_idle_ball(btVector3 linearVelocity) {
