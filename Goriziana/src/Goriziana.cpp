@@ -62,11 +62,14 @@ GLfloat lastFrame = 0.0f;
 
 // posizioni delle mie pointlight
 //glm::vec3 lightPositions[] = { glm::vec3(-5.0f, 15.0f, 0.0f), glm::vec3(0.0f, 15.0f, 0.0f), glm::vec3(5.0f, 15.0f, 0.0f), };
-glm::vec3 lightPos = glm::vec3(-8.5f, 11.0f, -7.0f);
+// Posizione ottimale della luce del sole
+//glm::vec3 lightDir = glm::vec3(-8.5f, 11.0f, -7.0f);
+glm::vec3 lightDir = glm::vec3(0.5f, 6.0f, 0.3f);
 
 // Uniform da passare agli shader
 glm::vec3 specularColor(1.0f, 1.0f, 1.0f);
-glm::vec3 ambientColor(0.1f, 0.1f, 0.1f);
+glm::vec3 ambientColor(0.1f);
+
 // pesi della componente diffusive, speculari e ambientali
 GLfloat Kd = 0.8f;
 GLfloat Ks = 0.5f;
@@ -112,7 +115,6 @@ GLuint load_cubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
 void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
-void draw_light_origin(Shader &shaderLightCube, Model &modelLightCube);
 bool check_idle_ball(btVector3 linearVelocity);
 
 // Funzioni per gestire il gioco
@@ -195,7 +197,6 @@ int main() {
 	Shader shaderTexture("shaders/shaderTexture.vert", "shaders/shaderTexture.frag");
 	Shader shaderDebugger("shaders/shaderDebug.vert", "shaders/shaderDebug.frag");
 	Shader shaderSkybox("shaders/shaderSkybox.vert", "shaders/shaderSkybox.frag");
-	Shader shaderLightCube("shaders/shaderLight.vert", "shaders/shaderLight.frag");
 
 	//UTILIZZO LA CLASSE MODEL CREATA PER CARICARE E VISUALIZZARE IL MODELLO 3D
 	Model modelTable("models/table/gTable.obj");
@@ -271,6 +272,17 @@ int main() {
 	playersBall.push_back(bodyBallWhite);
 	playersBall.push_back(bodyBallYellow);
 
+	//Setto le componenti per la directional light
+	shaderNoTexture.setVec3("sunLight.direction", lightDir);
+    shaderNoTexture.setVec3("sunLight.ambient", 0.2f, 0.2f, 0.2f);
+    shaderNoTexture.setVec3("sunLight.diffuse", 0.5f, 0.5f, 0.5f);
+    shaderNoTexture.setVec3("sunLight.specular", 1.0f, 1.0f, 1.0f);
+
+    shaderTexture.setVec3("sunLight.direction", lightDir);
+    shaderTexture.setVec3("sunLight.ambient", 0.2f, 0.2f, 0.2f);
+    shaderTexture.setVec3("sunLight.diffuse", 0.5f, 0.5f, 0.5f);
+    shaderTexture.setVec3("sunLight.specular", 1.0f, 1.0f, 1.0f);
+
 	//Carico la texture per il pavimento
 	GLuint textureFloor = load_texture("textures/floor.jpg");
 
@@ -323,11 +335,9 @@ int main() {
 
 		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
 
-		draw_model_texture(shaderTexture, textureFloor, modelTable, modelPin, vectorPin);
+		//draw_model_texture(shaderTexture, textureFloor, modelTable, modelPin, vectorPin);
 
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
-
-		draw_light_origin(shaderLightCube, modelBall);
 
 		model = mat4(1.0f);
 
@@ -362,7 +372,6 @@ int main() {
 	shaderNoTexture.Delete();
 	shaderDebugger.Delete();
 	shaderSkybox.Delete();
-	shaderLightCube.Delete();
 
 	poolSimulation.Clear();
 
@@ -531,25 +540,15 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 
 	//RENDERIZZO LE BIGLIE DA BILIARDO
 	//INIZIO DALLA BIANCA
-	shaderNT.setVec3("diffuseColor", 1.0f, 1.0f, 1.0f);
-	shaderNT.setVec3("ambientColor", ambientColor);
-	shaderNT.setVec3("specularColor", specularColor);
+	shaderNT.setVec3("material.ambient", ambientColor);
+	shaderNT.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
+	shaderNT.setVec3("material.specular", specularColor);
 
-	// Per ogni luce nello shaderNT, passo la posizione corrispondente
-//	for (GLuint i = 0; i < NR_LIGHTS; i++) {
-//		string number = to_string(i);
-//		shaderNT.setVec3(("lights[" + number + "]").c_str(), lightPositions[i]);
-//	}
-	shaderNT.setVec3("light", lightPos);
+	shaderNT.setFloat("material.shininess", shininess);
 
 	shaderNT.setFloat("Kd", Kd);
 	shaderNT.setFloat("Ka", Ka);
 	shaderNT.setFloat("Ks", Ks);
-
-	shaderNT.setFloat("constant", constant);
-	shaderNT.setFloat("linear", linear);
-	shaderNT.setFloat("quadratic", quadratic);
-	shaderNT.setFloat("shininess", shininess);
 
 	shaderNT.setMat4("projectionMatrix", projection);
 
@@ -570,7 +569,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	ball.Draw(shaderNT);
 
 	//RENDERIZZO LA BIGLIA ROSSA
-	shaderNT.setVec3("diffuseColor", 1.0f, 0.0f, 0.0f);
+	shaderNT.setVec3("material.diffuse", 1.0f, 0.0f, 0.0f);
 
 	model = glm::mat4(1.0f);
 	normal = glm::mat3(1.0f);
@@ -588,7 +587,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	ball.Draw(shaderNT);
 
 	//RENDERIZZO LA BIGLIA GIALLA
-	shaderNT.setVec3("diffuseColor", 1.0f, 1.0f, 0.0f);
+	shaderNT.setVec3("material.diffuse", 1.0f, 1.0f, 0.0f);
 
 	model = glm::mat4(1.0f);
 	normal = glm::mat3(1.0f);
@@ -615,24 +614,12 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 	//RENDERIZZO IL TAVOLO
 	shaderT.Use();
 
-	shaderT.setVec3("ambientColor", ambientColor);
-	shaderT.setVec3("specularColor", specularColor);
-
-	// Per ogni luce nello shaderT, passo la posizione corrispondente
-//	for (GLuint i = 0; i < NR_LIGHTS; i++) {
-//		string number = to_string(i);
-//		shaderT.setVec3(("lights[" + number + "]").c_str(), lightPositions[i]);
-//	}
-	shaderT.setVec3("light", lightPos);
+	shaderT.setVec3("material.specular", specularColor);
+	shaderT.setFloat("material.shininess", shininess);
 
 	shaderT.setFloat("Kd", Kd);
 	shaderT.setFloat("Ka", Ka);
 	shaderT.setFloat("Ks", Ks);
-
-	shaderT.setFloat("constant", constant);
-	shaderT.setFloat("linear", linear);
-	shaderT.setFloat("quadratic", quadratic);
-	shaderT.setFloat("shininess", shininess);
 
 	shaderT.setFloat("repeat", 1.0f);
 
@@ -691,20 +678,6 @@ void draw_skybox(Shader &shaderSB, Model &box, GLuint texture) {
 	box.Draw(shaderSB);
 
 	glDepthFunc(GL_LESS);
-}
-
-void draw_light_origin(Shader &shader, Model &modelLight){
-	model = glm::mat4(1.0f);
-
-	model = glm::translate(model, glm::vec3(-5.4f, 5.4f, -10.0f));
-	model = glm::scale(model, glm::vec3(0.5f));
-
-	shader.Use();
-	shader.setMat4("projectionMatrix", projection);
-	shader.setMat4("viewMatrix", view);
-	shader.setMat4("modelMatrix", model);
-
-	modelLight.Draw(shader);
 }
 
 bool check_idle_ball(btVector3 linearVelocity) {
