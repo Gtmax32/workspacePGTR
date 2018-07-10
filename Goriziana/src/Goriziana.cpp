@@ -63,24 +63,21 @@ GLfloat lastFrame = 0.0f;
 // posizioni delle mie pointlight
 //glm::vec3 lightPositions[] = { glm::vec3(-5.0f, 15.0f, 0.0f), glm::vec3(0.0f, 15.0f, 0.0f), glm::vec3(5.0f, 15.0f, 0.0f), };
 // Posizione ottimale della luce del sole
-glm::vec3 lightDir = glm::vec3(8.5f, -11.0f, 7.0f);
-//glm::vec3 lightDir = glm::vec3(0.0f, -6.0f, 0.0f);
-
-// Uniform da passare agli shader
-glm::vec3 specularColor(1.0f, 1.0f, 1.0f);
-glm::vec3 ambientColor(0.1f);
+glm::vec3 lightDir = glm::vec3(-6.0f, 10.0f, -9.0f);
+//glm::vec3 lightDir = glm::vec3(0.0f, 1.0f, 0.0f);
 
 // pesi della componente diffusive, speculari e ambientali
+//GLfloat Ks = 0.5f;
+//GLfloat Ka = 0.2f;
 GLfloat Kd = 0.8f;
-GLfloat Ks = 0.5f;
-GLfloat Ka = 0.2f;
+GLfloat F0 = 3.0f;
 // componente di shininess per shader Phong e Blinn-Phong
-GLfloat shininess = 25.0f;
+//GLfloat shininess = 25.0f;
 
 // parametri per l'attenuazione negli shader Phong e Blinn-Phong
-GLfloat constant = 1.0f;
-GLfloat linear = 0.09f;
-GLfloat quadratic = 0.032f;
+//GLfloat constant = 1.0f;
+//GLfloat linear = 0.09f;
+//GLfloat quadratic = 0.032f;
 
 //Dimensione della sfera
 glm::vec3 sphereSize = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -193,8 +190,8 @@ int main() {
 	vector<string> faces = { "skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg" };
 
 	//UTILIZZO LA CLASSE SHADER CREATA PER COMPILARE IL VS ED IL FS, E LINKARLI NEL PS
-	Shader shaderNoTexture("shaders/shaderNoTexture.vert", "shaders/shaderNoTexture.frag");
-	Shader shaderTexture("shaders/shaderTexture.vert", "shaders/shaderTexture.frag");
+	Shader shaderNoTexture("shaders/shaderNoTextureCT.vert", "shaders/shaderNoTextureCT.frag");
+	Shader shaderTexture("shaders/shaderTextureCT.vert", "shaders/shaderTextureCT.frag");
 	Shader shaderDebugger("shaders/shaderDebug.vert", "shaders/shaderDebug.frag");
 	Shader shaderSkybox("shaders/shaderSkybox.vert", "shaders/shaderSkybox.frag");
 
@@ -274,16 +271,18 @@ int main() {
 
 	//Setto le componenti per la directional light
 	shaderNoTexture.Use();
-	shaderNoTexture.setVec3("sunLight.direction", lightDir);
-    shaderNoTexture.setVec3("sunLight.ambient", glm::vec3(0.4f));
-    shaderNoTexture.setVec3("sunLight.diffuse", glm::vec3(0.8f));
-    shaderNoTexture.setVec3("sunLight.specular", glm::vec3(1.0f));
+	shaderNoTexture.setVec3("lightVector", lightDir);
+//	shaderNoTexture.setVec3("sunLight.direction", lightDir);
+//  shaderNoTexture.setVec3("sunLight.ambient", glm::vec3(0.4f));
+//  shaderNoTexture.setVec3("sunLight.diffuse", glm::vec3(0.8f));
+//  shaderNoTexture.setVec3("sunLight.specular", glm::vec3(1.0f));
 
     shaderTexture.Use();
-    shaderTexture.setVec3("sunLight.direction", lightDir);
-    shaderTexture.setVec3("sunLight.ambient", 0.2f, 0.2f, 0.2f);
-    shaderTexture.setVec3("sunLight.diffuse", 0.5f, 0.5f, 0.5f);
-    shaderTexture.setVec3("sunLight.specular", 1.0f, 1.0f, 1.0f);
+    shaderTexture.setVec3("lightVector", lightDir);
+//  shaderTexture.setVec3("sunLight.direction", lightDir);
+//  shaderTexture.setVec3("sunLight.ambient", 0.2f, 0.2f, 0.2f);
+//  shaderTexture.setVec3("sunLight.diffuse", 0.5f, 0.5f, 0.5f);
+//  shaderTexture.setVec3("sunLight.specular", 1.0f, 1.0f, 1.0f);
 
 	//Carico la texture per il pavimento
 	GLuint textureFloor = load_texture("textures/floor.jpg");
@@ -298,9 +297,6 @@ int main() {
 
 	selectedBallPos = poolBallPos[0];
 	camera.setObjectPos(selectedBallPos);
-
-	// File di log inserito per debuggare la biglia
-	ofstream out("log.txt");
 
 	btTransform transform;
 	btVector3 linearVelocity, angularVelocity, origin;
@@ -322,7 +318,7 @@ int main() {
 
 		view = camera.GetViewMatrix();
 
-		shaderNoTexture.setVec3("viewPos", camera.Position);
+		//shaderNoTexture.setVec3("viewPos", camera.Position);
 
 		if (debugMode)
 			debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
@@ -339,7 +335,7 @@ int main() {
 
 		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
 
-		//draw_model_texture(shaderTexture, textureFloor, modelTable, modelPin, vectorPin);
+		draw_model_texture(shaderTexture, textureFloor, modelTable, modelPin, vectorPin);
 
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
 
@@ -378,9 +374,6 @@ int main() {
 	shaderSkybox.Delete();
 
 	poolSimulation.Clear();
-
-	// Chiudo il file di log
-	out.close();
 
 	glfwTerminate();
 
@@ -542,17 +535,22 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 
 	shaderNT.Use();
 
+	shaderNT.setFloat("m", 0.3);
+	shaderNT.setFloat("F0", 4.0);
+	shaderNT.setFloat("Kd", Kd);
+
 	//RENDERIZZO LE BIGLIE DA BILIARDO
 	//INIZIO DALLA BIANCA
-	shaderNT.setVec3("material.ambient", 0.25, 0.20725, 0.20725);
-	shaderNT.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
-	shaderNT.setVec3("material.specular", 0.296648, 0.296648, 0.296648);
-
-	shaderNT.setFloat("material.shininess", 0.088);
-
-	shaderNT.setFloat("Kd", Kd);
-	shaderNT.setFloat("Ka", Ka);
-	shaderNT.setFloat("Ks", Ks);
+//	shaderNT.setVec3("material.ambient", 0.25, 0.20725, 0.20725);
+//	shaderNT.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
+//	shaderNT.setVec3("material.specular", 0.296648, 0.296648, 0.296648);
+//
+//	shaderNT.setFloat("material.shininess", 0.088);
+//
+//	shaderNT.setFloat("Kd", Kd);
+//	shaderNT.setFloat("Ka", Ka);
+//	shaderNT.setFloat("Ks", Ks);
+	shaderNT.setVec3("diffuseColor", glm::vec3(1.0f));
 
 	shaderNT.setMat4("projectionMatrix", projection);
 
@@ -573,7 +571,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	ball.Draw(shaderNT);
 
 	//RENDERIZZO LA BIGLIA ROSSA
-	shaderNT.setVec3("material.diffuse", 1.0f, 0.0f, 0.0f);
+	shaderNT.setVec3("diffuseColor", 1.0f, 0.0f, 0.0f);
 
 	model = glm::mat4(1.0f);
 	normal = glm::mat3(1.0f);
@@ -591,7 +589,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	ball.Draw(shaderNT);
 
 	//RENDERIZZO LA BIGLIA GIALLA
-	shaderNT.setVec3("material.diffuse", 1.0f, 1.0f, 0.0f);
+	shaderNT.setVec3("diffuseColor", 1.0f, 1.0f, 0.0f);
 
 	model = glm::mat4(1.0f);
 	normal = glm::mat3(1.0f);
@@ -617,13 +615,16 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 
 	//RENDERIZZO IL TAVOLO
 	shaderT.Use();
-
-	shaderT.setVec3("material.specular", specularColor);
-	shaderT.setFloat("material.shininess", shininess);
-
+	shaderT.setFloat("m", 0.5);
+	shaderT.setFloat("F0", F0);
 	shaderT.setFloat("Kd", Kd);
-	shaderT.setFloat("Ka", Ka);
-	shaderT.setFloat("Ks", Ks);
+
+//	shaderT.setVec3("material.specular", specularColor);
+//	shaderT.setFloat("material.shininess", shininess);
+//
+//	shaderT.setFloat("Kd", Kd);
+//	shaderT.setFloat("Ka", Ka);
+//	shaderT.setFloat("Ks", Ks);
 
 	shaderT.setFloat("repeat", 1.0f);
 
@@ -644,6 +645,8 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 	table.Draw(shaderT);
 
 	//RENDERIZZO I BIRILLI
+	shaderT.setFloat("m", 0.4);
+
 	for (int i = 0; i < 5; i++){
 		model = glm::mat4(1.0f);
 		normal = glm::mat3(1.0f);
