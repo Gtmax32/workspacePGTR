@@ -9,7 +9,7 @@ struct Light {
 };
 
 struct Material {
-    vec3 ambient;
+	vec3 ambient;
     vec3 diffuse;
     vec3 specular;
     float shininess;
@@ -18,6 +18,8 @@ struct Material {
 uniform Light sunLight;
 
 uniform Material material;
+
+uniform vec3 viewPos;
 
 // variabile di output dello shader
 out vec4 colorFrag;
@@ -55,22 +57,25 @@ void main(){
 		vec3 diffuse = Kd * lambertian * sunLight.diffuse * material.diffuse;
 		
 		// il vettore di vista era stato calcolato nel vertex shader, e il valore era stato già negato per avere il verso dal punto alla camera.
-		vec3 V = normalize( vViewPosition );
+		//vec3 V = normalize( vViewPosition );
 
 		// nel modello di Blinn-Phong non utilizzo il vettore di riflessione,
 		// ma il vettore posizionato a metà tra direzione di vista e direzione della luce
-		vec3 H = normalize(L + V);		
+		//vec3 H = normalize(L + V);
+		
+		vec3 viewDir = normalize(viewPos - fragmentPos);
+		vec3 reflectDir = reflect(-L, N);
 		
 		// applico halfdir nel calcolo della componente speculare
-		float specAngle = max(dot(N, H), 0.0);
+		float specAngle = max(dot(viewDir, reflectDir), 0.0);
 		// applicazione della shininess
-		float specularValue = pow(specAngle, shininess);
+		float specularValue = pow(specAngle, material.shininess);
 		
 		vec3 specular = Ks * specularValue * material.specular * sunLight.specular;
 
 		// aggiungo le componenti diffusiva e speculari al colore finale 
 		// NB: in questa implementazione la somma dei pesi potrebbe non essere uguale a 1
-		color = vec3( ambient + diffuse + specular );
+		color = ambient + diffuse + specular;
 					  
 	}
     // unisco color e reflectedcolor sulla base di reflectamount

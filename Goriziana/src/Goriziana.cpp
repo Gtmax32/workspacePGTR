@@ -63,8 +63,8 @@ GLfloat lastFrame = 0.0f;
 // posizioni delle mie pointlight
 //glm::vec3 lightPositions[] = { glm::vec3(-5.0f, 15.0f, 0.0f), glm::vec3(0.0f, 15.0f, 0.0f), glm::vec3(5.0f, 15.0f, 0.0f), };
 // Posizione ottimale della luce del sole
-//glm::vec3 lightDir = glm::vec3(-8.5f, 11.0f, -7.0f);
-glm::vec3 lightDir = glm::vec3(0.5f, 6.0f, 0.3f);
+glm::vec3 lightDir = glm::vec3(8.5f, -11.0f, 7.0f);
+//glm::vec3 lightDir = glm::vec3(0.0f, -6.0f, 0.0f);
 
 // Uniform da passare agli shader
 glm::vec3 specularColor(1.0f, 1.0f, 1.0f);
@@ -73,7 +73,7 @@ glm::vec3 ambientColor(0.1f);
 // pesi della componente diffusive, speculari e ambientali
 GLfloat Kd = 0.8f;
 GLfloat Ks = 0.5f;
-GLfloat Ka = 0.1f;
+GLfloat Ka = 0.2f;
 // componente di shininess per shader Phong e Blinn-Phong
 GLfloat shininess = 25.0f;
 
@@ -273,11 +273,13 @@ int main() {
 	playersBall.push_back(bodyBallYellow);
 
 	//Setto le componenti per la directional light
+	shaderNoTexture.Use();
 	shaderNoTexture.setVec3("sunLight.direction", lightDir);
-    shaderNoTexture.setVec3("sunLight.ambient", 0.2f, 0.2f, 0.2f);
-    shaderNoTexture.setVec3("sunLight.diffuse", 0.5f, 0.5f, 0.5f);
-    shaderNoTexture.setVec3("sunLight.specular", 1.0f, 1.0f, 1.0f);
+    shaderNoTexture.setVec3("sunLight.ambient", glm::vec3(0.4f));
+    shaderNoTexture.setVec3("sunLight.diffuse", glm::vec3(0.8f));
+    shaderNoTexture.setVec3("sunLight.specular", glm::vec3(1.0f));
 
+    shaderTexture.Use();
     shaderTexture.setVec3("sunLight.direction", lightDir);
     shaderTexture.setVec3("sunLight.ambient", 0.2f, 0.2f, 0.2f);
     shaderTexture.setVec3("sunLight.diffuse", 0.5f, 0.5f, 0.5f);
@@ -319,6 +321,8 @@ int main() {
 		glfwPollEvents();
 
 		view = camera.GetViewMatrix();
+
+		shaderNoTexture.setVec3("viewPos", camera.Position);
 
 		if (debugMode)
 			debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
@@ -540,11 +544,11 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 
 	//RENDERIZZO LE BIGLIE DA BILIARDO
 	//INIZIO DALLA BIANCA
-	shaderNT.setVec3("material.ambient", ambientColor);
+	shaderNT.setVec3("material.ambient", 0.25, 0.20725, 0.20725);
 	shaderNT.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
-	shaderNT.setVec3("material.specular", specularColor);
+	shaderNT.setVec3("material.specular", 0.296648, 0.296648, 0.296648);
 
-	shaderNT.setFloat("material.shininess", shininess);
+	shaderNT.setFloat("material.shininess", 0.088);
 
 	shaderNT.setFloat("Kd", Kd);
 	shaderNT.setFloat("Ka", Ka);
