@@ -15,70 +15,73 @@ struct Material {
     float shininess;
 };
 
+// light component
 uniform Light sunLight;
 
+// object material component
 uniform Material material;
 
-uniform vec3 viewPos;
+// uniform that contain camera position, for Phong model
+//uniform vec3 viewPos;
 
-// variabile di output dello shader
+// output shader variable
 out vec4 colorFrag;
 
 in vec3 fragmentPos;
 
-// normale (in coordinate vista)
+// the transformed normal has been calculated per-vertex in the vertex shader
 in vec3 vNormal;
-//vettore da vertice a camera (in coordinate vista)
+// vector from fragment to camera (in view coordinate)
 in vec3 vViewPosition;
 
-// pesi delle componenti
+// weight of the components
 uniform float Ka;
 uniform float Kd;
 uniform float Ks;
 
-// coefficiente di shininess, passato dall'applicazione
+// shininess coefficients (passed from the application)
 uniform float shininess;
 
 void main(){
-	vec3 color;	
+	vec3 color;
 	
-    // comincio a calcolare la componente ambientale
+    // ambient component
     vec3 ambient = Ka * sunLight.ambient * material.ambient;
-
+	
+	// normalization of the per-fragment normal
     vec3 N = normalize(vNormal);
     
-	vec3 L = normalize(-sunLight.direction);
+	// normalization of the per-fragment light incidence direction
+	vec3 L = normalize(sunLight.direction);
 	
-	// calcolo del coefficiente del modello di Lambert
+	// Lambert coefficient
 	float lambertian = max(dot(L, N), 0.0);
 	
-	// se la componente lambertiana è positiva, procedo al calcolo della componente speculare
+	// if the lambert coefficient is positive, then I can calculate the specular component
 	if(lambertian > 0.0) {
-		vec3 diffuse = Kd * lambertian * sunLight.diffuse * material.diffuse;
+		vec3 diffuse = Kd * lambertian * material.diffuse * sunLight.diffuse;
 		
-		// il vettore di vista era stato calcolato nel vertex shader, e il valore era stato già negato per avere il verso dal punto alla camera.
-		//vec3 V = normalize( vViewPosition );
+		// the view vector has been calculated in the vertex shader, already negated to have direction from the mesh to the camera
+		vec3 V = normalize( vViewPosition );
 
-		// nel modello di Blinn-Phong non utilizzo il vettore di riflessione,
-		// ma il vettore posizionato a metà tra direzione di vista e direzione della luce
-		//vec3 H = normalize(L + V);
+		// in the Blinn-Phong model we do not use the reflection vector, but the half vector
+		vec3 H = normalize(L + V);
 		
-		vec3 viewDir = normalize(viewPos - fragmentPos);
-		vec3 reflectDir = reflect(-L, N);
+		// in Phong model we use the reflection vector
+		//vec3 viewDir = normalize(viewPos - fragmentPos);
+		//vec3 reflectDir = reflect(-L, N);		
+		//float specAngle = max(dot(viewDir, reflectDir), 0.0);
 		
-		// applico halfdir nel calcolo della componente speculare
-		float specAngle = max(dot(viewDir, reflectDir), 0.0);
-		// applicazione della shininess
-		float specularValue = pow(specAngle, material.shininess);
+		// we use H to calculate the specular component
+		float specAngle = max(dot(H, N), 0.0);
+		// shininess application to the specular component
+		float specularValue = pow(specAngle, shininess);
 		
 		vec3 specular = Ks * specularValue * material.specular * sunLight.specular;
-
-		// aggiungo le componenti diffusiva e speculari al colore finale 
-		// NB: in questa implementazione la somma dei pesi potrebbe non essere uguale a 1
+		// We add diffusive and specular components to the final color
 		color = ambient + diffuse + specular;
-					  
 	}
-    // unisco color e reflectedcolor sulla base di reflectamount
-    colorFrag  = vec4( color, 1.0);
+    
+	colorFrag  = vec4(color, 1.0);
 
 }
