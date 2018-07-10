@@ -191,6 +191,7 @@ int main() {
 
 	//UTILIZZO LA CLASSE SHADER CREATA PER COMPILARE IL VS ED IL FS, E LINKARLI NEL PS
 	Shader shaderNoTexture("shaders/shaderNoTextureCT.vert", "shaders/shaderNoTextureCT.frag");
+	//Shader shaderNoTexture("shaders/shaderVelvet.vert", "shaders/shaderVelvet.frag");
 	Shader shaderTexture("shaders/shaderTextureCT.vert", "shaders/shaderTextureCT.frag");
 	Shader shaderDebugger("shaders/shaderDebug.vert", "shaders/shaderDebug.frag");
 	Shader shaderSkybox("shaders/shaderSkybox.vert", "shaders/shaderSkybox.frag");
@@ -273,9 +274,9 @@ int main() {
 	shaderNoTexture.Use();
 	shaderNoTexture.setVec3("lightVector", lightDir);
 //	shaderNoTexture.setVec3("sunLight.direction", lightDir);
-//  shaderNoTexture.setVec3("sunLight.ambient", glm::vec3(0.4f));
-//  shaderNoTexture.setVec3("sunLight.diffuse", glm::vec3(0.8f));
-//  shaderNoTexture.setVec3("sunLight.specular", glm::vec3(1.0f));
+//	shaderNoTexture.setVec3("sunLight.ambient", glm::vec3(0.1f));
+//	shaderNoTexture.setVec3("sunLight.diffuse", glm::vec3(0.3f));
+//	shaderNoTexture.setVec3("sunLight.specular", glm::vec3(0.8f));
 
     shaderTexture.Use();
     shaderTexture.setVec3("lightVector", lightDir);
@@ -299,7 +300,7 @@ int main() {
 	camera.setObjectPos(selectedBallPos);
 
 	btTransform transform;
-	btVector3 linearVelocity, angularVelocity, origin;
+	btVector3 linearVelocity, angularVelocity, origin, newPos;
 	glm::vec3 position;
 
 	// Setto la biglia da cui comincerà il gioco
@@ -436,7 +437,7 @@ void throw_ball(btRigidBody* ball) {
 	if (!checkShoot) {
 		glm::mat4 screenToWorld = glm::inverse(projection * view);
 
-		GLfloat shootInitialSpeed = 15.0f;
+		GLfloat shootInitialSpeed = 20.0f;
 
 		GLfloat x = (mouseX / SCR_WIDTH) * 2 - 1,
 				y = -(mouseY / SCR_HEIGHT) * 2 + 1;
@@ -534,13 +535,11 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	btTransform transform;
 
 	shaderNT.Use();
-
-	shaderNT.setFloat("m", 0.3);
-	shaderNT.setFloat("F0", 4.0);
-	shaderNT.setFloat("Kd", Kd);
+	shaderNT.setFloat("shininess", 64.0);
 
 	//RENDERIZZO LE BIGLIE DA BILIARDO
 	//INIZIO DALLA BIANCA
+	//COMPONENTI PER BLINN-PHONG
 //	shaderNT.setVec3("material.ambient", 0.25, 0.20725, 0.20725);
 //	shaderNT.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
 //	shaderNT.setVec3("material.specular", 0.296648, 0.296648, 0.296648);
@@ -550,7 +549,12 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 //	shaderNT.setFloat("Kd", Kd);
 //	shaderNT.setFloat("Ka", Ka);
 //	shaderNT.setFloat("Ks", Ks);
-	shaderNT.setVec3("diffuseColor", glm::vec3(1.0f));
+	//COMPONENTI PER COOK-TORRANCE
+	shaderNT.setFloat("m", 0.3);
+	shaderNT.setFloat("F0", F0);
+	shaderNT.setFloat("Kd", Kd);
+
+	shaderNT.setVec3("diffuseColor", 1.0f, 1.0f, 1.0f);
 
 	shaderNT.setMat4("projectionMatrix", projection);
 
@@ -615,8 +619,8 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 
 	//RENDERIZZO IL TAVOLO
 	shaderT.Use();
-	shaderT.setFloat("m", 0.5);
-	shaderT.setFloat("F0", F0);
+	shaderT.setFloat("m", 0.6);
+	shaderT.setFloat("F0", 4.0);
 	shaderT.setFloat("Kd", Kd);
 
 //	shaderT.setVec3("material.specular", specularColor);

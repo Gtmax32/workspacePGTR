@@ -37,8 +37,7 @@ public:
     // Costruttore
     // Vengono impostati i parametri di base per la simulazione fisica (modalità di gestione delle collisioni, 
     //del risolutore delle equazioni differenziali per le forze e i constraint).
-    Physics()
-    {
+    Physics(){
         // Metodo per la Collision detection tra corpi rigidi (identificati come possibili collisioni dalla fase di BroadPhase Collision Detection)
         ///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
         this->collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -63,8 +62,7 @@ public:
     //////////////////////////////////////////   
     // Metodo per creare un corpo rigido, dotato di una Collision Shape di tipo Box o Sphere
    //// l'utilizzo di una libreria fisica comporta la necessità di definire un solido di riferimento su cui effettuare i calcoli di simulazione fisica, che "approssimi" come forma il modello della mia scena. Una volta calcolata la simulazione, i valori di traslazione e rotazione del solido vengono applicati al modello.
-   btRigidBody* createRigidBody(int type, glm::vec3 pos, glm::vec3 size, glm::vec3 rot, float m, float friction , float restitution)
-    {
+   btRigidBody* createRigidBody(int type, glm::vec3 pos, glm::vec3 size, glm::vec3 rot, float m, float friction , float restitution){
 
         btCollisionShape* cShape;
 
@@ -138,6 +136,9 @@ public:
             rbInfo.m_angularDamping = 0.4;
             rbInfo.m_rollingFriction = 0.4;
             rbInfo.m_linearDamping = 0.3;
+        } else if (type == 2){
+        		rbInfo.m_angularDamping = 0.05;
+        	    rbInfo.m_rollingFriction = 0.04;
         }
 
         // creo il corpo rigido
