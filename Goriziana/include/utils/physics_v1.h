@@ -91,10 +91,11 @@ public:
         			localTransform.setIdentity();
         			localTransform.setOrigin(btVector3(0.0, 0.1, 0.0));
 
-        			btCylinderShape* cylinder = new btCylinderShape(dim);
+        			btCylinderShape* innerShape = new btCylinderShape(dim);
+        			//btCapsuleShape* innerShape = new btCapsuleShape(dim.getX(), dim.getY());
 
         			btCompoundShape* shape = new btCompoundShape();
-        			shape->addChildShape(localTransform, cylinder);
+        			shape->addChildShape(localTransform, innerShape);
         			cShape = shape;
 
 //        			cShape = new btCylinderShape(dim);

@@ -236,16 +236,17 @@ int main() {
 	bodyTable = poolSimulation.createRigidBody(0, bodyTableSSPos, bodyTableSSSize, bodyTableSSRotation, 0.0, 0.5, 0.7);
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
-	// Dimensione rigibody per modello birillo
+	// Dimensione rigibody Cylinder per modello birillo
 	glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.2f, 0.09f);
+	// Dimensione rigibody Capsule per modello birillo
+	//glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.25f, 0.09f);
 	// Dimensione rigibody per modello cilindro
 	//glm::vec3 bodyPinSize = glm::vec3(0.1f, 0.18f, 0.1f);
+
 	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	for (int i = 0; i < 5; i++){
 		btRigidBody* bodyPin = poolSimulation.createRigidBody(2, poolPinPos[i], bodyPinSize, bodyPinRotation, 0.1, 0.4, 0.0);
-		bodyPin->setDamping(0.4,0.4);
-		//bodyPin->setRollingFriction(0.1);
 		vectorPin.push_back(bodyPin);
 	}
 
