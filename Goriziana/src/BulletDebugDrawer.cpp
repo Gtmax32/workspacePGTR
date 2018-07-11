@@ -1,7 +1,3 @@
-/*
- * Codice di partenza: https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=11517
- */
-
 #include "BulletDebugDrawer.h"
 
 GLuint VBO, VAO;

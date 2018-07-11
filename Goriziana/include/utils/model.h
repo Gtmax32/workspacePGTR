@@ -1,16 +1,15 @@
 /*
-Classe Model v3
-- implementazione classe per caricamento modello OBJ tramite libreria Assimp
-- crea le strutture dati per la creazione e inizializzazione degli VBO, VAO e EBO
-- carica ed applica le texture eventualmente definite nel modello, come esportate dal SW di modellazione
+Classe Model
+- Implementazione classe per caricamento modello OBJ tramite libreria Assimp
+- Crea le strutture dati per la creazione e inizializzazione degli VBO, VAO e EBO
+- Carica ed applica le texture eventualmente definite nel modello, come esportate dal SW di modellazione
 */
 
 #ifndef MODEL_H
 #define MODEL_H
 
-// Contiene tutte gli include necessari ad OpenGL
 #include <glad/glad.h> 
-// Utilizzo le strutture dati di GLM per convertire i dati dalla struttura dati di Assimp nella struttura dati adatta ai buffer VBO, VAO e EBO
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -18,12 +17,11 @@ Classe Model v3
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-// Libreria per il caricamento delle immagini
 //#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
 
-#include <utils/mesh_v3.h>
-#include <utils/shader_v2.h>
+#include <utils/mesh.h>
+#include <utils/shader.h>
 
 #include <string>
 #include <fstream>
@@ -38,26 +36,39 @@ GLuint TextureFromFile(const char *path, const string &directory, bool gamma = f
 /********** classe MODEL **********/
 class Model {
 public:
-    // Vector contenente le texture del modello. Il salvataggio è ottimizzato in modo che una stessa texture non venga letta due volte.
+    // Attributo che contiene le texture del modello
     vector<Texture> textures_loaded;
-	// Vector di mesh
+	// Attributo che contiene le mesh del modello
     vector<Mesh> meshes;
-	// Directory del modello
+	// Attributo che contiene il path di modello caricato
     string directory;
+    // Attributo booleano per l'attivazione della gammaCorrection
     bool gammaCorrection;
 
-    // Costruttore
+    /*
+     * Costruttore
+     * Prende in input i seguenti valori:
+     * - path: string, contiene il path del modello da caricare
+     * - gamma: bool, utilizzato per attivare/disattivare la gammaCorrection
+     */
     Model(string const &path, bool gamma = false) : gammaCorrection(gamma) {
         this->loadModel(path);
     }
 
-    // Renderizza il modello chiamando il metodo di rendering delle istanze della classe Mesh
+    /*
+     * Metodo che renderizza il modello chiamando il metodo di rendering delle istanze della classe Mesh
+     * Prende in input i seguenti valori:
+     * - shader: Shader, rappresenta lo shader compilato con tutte le informazioni per la corretta renderizzazione.
+     */
     void Draw(Shader shader){
         for(GLuint i = 0; i < this->meshes.size(); i++)
             this->meshes[i].Draw(shader);
     }
 	
-	// Distruttore. Alla chiusura dell'applicazione, fa deallocare la memoria dei buffer alle istanze della classe Mesh
+	/*
+	 * Distruttore.
+	 * Alla chiusura dell'applicazione, fa deallocare la memoria dei buffer alle istanze della classe Mesh.
+	 */
     virtual ~Model(){
         for(GLuint i = 0; i < this->meshes.size(); i++)
             this->meshes[i].Delete();
@@ -65,14 +76,18 @@ public:
     
 private:
 
-    // Carica il modello usando Assimp, e processa i nodi per ottenere un vector di istanze di Mesh
+    /*
+     * Metodo che carica il modello usando la libreria Assimp, e processa i nodi per ottenere un vector di istanze di Mesh
+     * Prende in input i seguenti valori:
+     * - path: string, contiene il path del modello da caricare
+     */
     void loadModel(string const &path){
         // Legge il file utilizzando la classe Importer della libreria
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
 		
         // Controlla eventuali errori
-        if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode){
+        if(!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode){
             cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
             return;
         }
@@ -84,16 +99,21 @@ private:
         this->processNode(scene->mRootNode, scene);
     }
 
-    // Processa ricorsivamente i nodi della struttura dati di Assimp
+    /*
+     * Metodo che processa ricorsivamente i nodi della struttura dati di Assimp
+     * Prende in input i seguenti valori:
+     * - node: aiNode*, puntatore al nodo della struttura dati da analizzare
+     * - scene: aiScene*, puntatore alla struttura dati che si sta analizzando
+     */
     void processNode(aiNode *node, const aiScene *scene){
         // Processa ogni mesh presente nel nodo corrente
         for(GLuint i = 0; i < node->mNumMeshes; i++) {
             // L'oggetto "node" contiene solo indici per gli oggetti della scena, che sono mantenuti in "scene".
-            // La classe aiNode è solo un mezzo per indicare uno o più mesh all'interno della scena
+            // La classe aiNode e' solo un mezzo per indicare uno o piu' mesh all'interno della scena
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			
 			// Avvia il processing della mesh di Assimp tramite il metodo processMesh.
-            // Il risultato (una istanza della classe Mesh) verrà aggiunta al vector delle mesh.
+            // Il risultato (una istanza della classe Mesh) verra'� aggiunta al vector delle mesh.
             this->meshes.push_back(processMesh(mesh, scene));
         }
         
@@ -103,8 +123,12 @@ private:
         }
     }
 	
-	// Gestione della mesh di Assimp per ottenere una "mesh OpenGL", 
-    // ossia creazione ed allocazione dei buffer da inviare alla scheda grafica in fase di rendering GPU
+	/*
+	 * Metodo utilizzato per la creazione ed allocazione dei buffer da inviare alla scheda grafica in fase di rendering GPU
+	 * Prende in input i seguenti valori:
+	 * - mesh: aiMesh*, puntatore alla mesh che stiamo analizzando
+	 * - scene: aiScene*, puntatore alla struttura dati che si sta analizzando
+	 */
     Mesh processMesh(aiMesh *mesh, const aiScene *scene){
         
 		// Vettori per i dati di vertici e indici dei vertici per le facce
@@ -117,7 +141,7 @@ private:
         for(GLuint i = 0; i < mesh->mNumVertices; i++){
             Vertex vertex;
 			
-			// Il tipo di dato usato da assimp per un vettore a 3 dimensioni non è uguale a quello che serve in fase di allocazione di memoria per i buffer,
+			// Il tipo di dato usato da assimp per un vettore a 3 dimensioni non e' uguale a quello che serve in fase di allocazione di memoria per i buffer,
             // pertanto vengono convertite tutte le strutture dati di assimp in strutture dati di GLM, che sono uguali a quelle che servono per le operazioni OpengGL
             glm::vec3 vector;
             
@@ -138,7 +162,7 @@ private:
             if(mesh->mTextureCoords[0]){
                 glm::vec2 vec;
                 // Si assume che il modello abbia un solo insieme di coordinate texture.
-                // In realtà, è possibile avere fino a 8 diverse coordinate texture: per altri modelli e formati, bisognerò adattare questo codice.
+                // In realta'�, e' possibile avere fino a 8 diverse coordinate texture: per altri modelli e formati, bisognerò adattare questo codice.
                 vec.x = mesh->mTextureCoords[0][i].x; 
                 vec.y = mesh->mTextureCoords[0][i].y;
                 vertex.TexCoords = vec;
@@ -197,7 +221,13 @@ private:
         return Mesh(vertices, indices, textures);
     }
 
-    // Carica (se non ancora caricate) le texture definite dai materiali del modello (se definiti)
+    /*
+     * Metodo che carica (se non ancora caricate) le texture definite dai materiali del modello (se definiti)
+     * Prende in input i seguenti valori:
+     * - mat: aiMaterial*, puntatore al material assegnato al modello
+     * - type: aiTextureType, valore che rappresenta la tipologia di texture
+     * - typeName: string, stringa che indica la tipologia di texture
+     */
     vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName){
         vector<Texture> textures;
 		
@@ -205,13 +235,13 @@ private:
             
 			aiString str;
             mat->GetTexture(type, i, &str);
-            // Controlla se la texture era già stata caricata
+            // Controlla se la texture era gia' stata caricata
             GLboolean skip = false;
             
 			for(GLuint j = 0; j < textures_loaded.size(); j++){
 				
                 if(std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0){
-					// E' già stata caricata la texture con lo stesso path quindi procede alla successiva
+					// E' gia' stata caricata la texture con lo stesso path quindi procede alla successiva
                     textures.push_back(textures_loaded[j]);
                     skip = true;
                     break;
@@ -231,7 +261,13 @@ private:
     }
 };
 
-// Caricamento della texture da un file su disco, e creazione Texture Unit di OpenGL
+/*
+ * Metodo che effettua il caricamento della texture da un file su disco (se non � stato fatto precedentemente) e crea la Texture Unit di OpenGL
+ * Prende in input i seguenti valori:
+ * - path: char*, variabile in cui � contenuto il path della texture
+ * - directory: string, variabile in cui � contenuta la directory della texture
+ * - gamma: bool, variabile che rappresenta l'attivazione/disattivazione della gamma correction
+ */
 GLuint TextureFromFile(const char *path, const string &directory, bool gamma){
     string filename = string(path);
     filename = directory + '/' + filename;
@@ -241,6 +277,7 @@ GLuint TextureFromFile(const char *path, const string &directory, bool gamma){
 
     int width, height, nrComponents;
     unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
+
     if (data){
         GLenum format;
         if (nrComponents == 1)

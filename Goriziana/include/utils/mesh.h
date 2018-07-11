@@ -1,5 +1,5 @@
 /*
-Classe Mesh v3
+Classe Mesh
 - Alloca e inizializza i buffer (VBO, VAO, EBO), e imposta come OpenGL deve interpretare i dati nei buffer 
 - Carica ed applica le texture
 */
@@ -7,13 +7,12 @@ Classe Mesh v3
 #ifndef MESH_H
 #define MESH_H
 
-// Contiene tutte gli include necessari ad OpenGL
 #include <glad/glad.h> 
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <utils/shader_v2.h>
+#include <utils/shader.h>
 
 #include <string>
 #include <fstream>
@@ -23,21 +22,24 @@ Classe Mesh v3
 
 using namespace std;
 
-// Struttura dati per i vertici
+/*
+ * Variabile globale che rappresenta la struttura dati per i vertici
+ */
 struct Vertex {
-    // position
     glm::vec3 Position;
-    // normal
+
     glm::vec3 Normal;
-    // texCoords
+
     glm::vec2 TexCoords;
-    // tangent
+
     glm::vec3 Tangent;
-    // bitangent
+
     glm::vec3 Bitangent;
 };
 
-// Struttura dati per le texture
+/*
+ * Variabile globale che rappresenta la struttura dati per le textures
+ */
 struct Texture {
     GLuint id;
     string type;
@@ -47,25 +49,34 @@ struct Texture {
 /********** classe MESH **********/
 class Mesh {
 public:
-    // Vettori per i dati di vertici e indici dei vertici per le facce
+    // Attributo che memorizza i vertici della mesh
     vector<Vertex> vertices;
+    // Attributo che memorizza gli indici dei vertici della mesh
     vector<GLuint> indices;
+    // Attributo che memorizza le texture da assegnare alle facce
     vector<Texture> textures;
     
-	// Vertex Array Object
+	// Attributo che memorizza il Vertex Attribut Object, utilizzato per renderizzare la mesh
 	GLuint VAO;
 
-    // Costruttore
-    Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures) {
+    /*
+     * Costruttore
+     * Prende in input i vertici, gli indici dei vertici e le texture in modo da renderizzare la mesh.
+     * Chiama il metodo setupMesh per settare i parametri iniziali (VAO, VBO ed EBO).
+     */
+    Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures) { // @suppress("Class members should be properly initialized")
         this->vertices = vertices;
         this->indices = indices;
         this->textures = textures;
 
-        // Inizializzo i buffer di OpenGL: VBO e EBO
         this->setupMesh();
     }
 
-    // Renderizzo il modello
+    /*
+     * Metodo utilizzato per renderizzare effettivamente la mesh mediante lo shader in input.
+     * Prende in input i seguenti valori:
+     * - shader: Shader, rappresenta lo shader compilato con tutte le informazioni per la corretta renderizzazione.
+     */
     void Draw(Shader shader) {
         GLuint diffuseNr  = 1;
         GLuint specularNr = 1;
@@ -80,17 +91,16 @@ public:
 			string number;
             string name = textures[i].type;
             if(name == "texture_diffuse")
-				ss << diffuseNr++; // Transfer GLuint to stream
+				ss << diffuseNr++;
 			else if(name == "texture_specular")
-					ss << specularNr++; // Transfer GLuint to stream
+					ss << specularNr++;
 				 else if(name == "texture_normal")
-						 ss << normalNr++; // Transfer GLuint to stream
+						 ss << normalNr++;
 					  else if(name == "texture_height")
-							  ss << heightNr++; // Transfer GLuint to stream
+							  ss << heightNr++;
 
-			// Setta l'uniform sampler2D con la corretta texture unit
             shader.setFloat(("material." + name + number).c_str(), i);
-            // e li associa
+
             glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
         }
         
@@ -101,14 +111,15 @@ public:
 		// Scollega il VAO
         glBindVertexArray(0);
 
-        // E' buona pratica settare tutto a default, una volta che è terminata la configurazione
         for (GLuint i = 0; i < this->textures.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, 0);
         }
     }
 	
-	// Nel momento della chiusura dell'applicazione, dealloca i buffer
+	/*
+	 * Metodo che, nel momento della chiusura dell'applicazione, dealloca i buffer utilizzati.
+	 */
     void Delete(){
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
@@ -116,10 +127,12 @@ public:
     }
 
 private:
-    // VBO e EBO
+    // Attributi che rappresentano il Vertex Buffer Object e Element Buffer Object
     GLuint VBO, EBO;
 
-    // Inizializzo i buffer objects\array
+    /*
+     * Metodo utilizzato per inizializzare VAO, VBO e EBO
+     */
     void setupMesh(){
         // Crea i buffer
         glGenVertexArrays(1, &this->VAO);

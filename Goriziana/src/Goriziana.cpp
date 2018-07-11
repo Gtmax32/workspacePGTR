@@ -14,15 +14,14 @@
 // GLFW
 #include <glfw/glfw3.h>
 
-// confirm that GLAD didn't include windows.h
 #ifdef _WINDOWS_
 #error windows.h was included!
 #endif
 
-#include <utils/shader_v2.h>
-#include <utils/camera_v3.h>
-#include <utils/model_v3.h>
-#include <utils/physics_v1.h>
+#include <utils/shader.h>
+#include <utils/camera.h>
+#include <utils/model.h>
+#include <utils/physics.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,51 +29,44 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-// Libreria per il caricamento delle immagini
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
 
-// Libreria per la simulazione fisica
 #include <bullet/btBulletDynamicsCommon.h>
 #include "BulletDebugDrawer.h"
 
-#define NR_LIGHTS 3
-
 using namespace std;
 
-// Dimensioni della finestra dell'applicazione
+//Dimensioni della finestra dell'applicazione
 const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
-// Camera     posx   posy  posz   upx   upy   upz   yaw   pitch
+//Camera      posx   posy  posz   upx   upy   upz   yaw   pitch
 Camera camera(-8.5f, 7.6f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 //Camera camera(-8.0f, 9.0f, -2.2f, 6.0f, 1.0f, 0.0f);
-const GLfloat ROTATION_ANGLE = 5.0f;
 
-// Variabili utilizzate per implementare una Camera FPS
+//Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float) SCR_WIDTH / 2.0f;
 GLfloat lastY = (float) SCR_HEIGHT / 2.0f;
 GLfloat firstMouse = true;
 double mouseX, mouseY;
 
-// Deltatime per uniformare la velocità di movimento
+//Deltatime per uniformare la velocità di movimento
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
-// posizioni delle mie pointlight
-//glm::vec3 lightPositions[] = { glm::vec3(-5.0f, 15.0f, 0.0f), glm::vec3(0.0f, 15.0f, 0.0f), glm::vec3(5.0f, 15.0f, 0.0f), };
-// Posizione ottimale della luce del sole
+//Posizione ottimale della luce del sole
 glm::vec3 lightDir = glm::vec3(-6.0f, 10.0f, -9.0f);
 //glm::vec3 lightDir = glm::vec3(0.0f, 1.0f, 0.0f);
 
-// pesi della componente diffusive, speculari e ambientali
+//Pesi della componente diffusive, speculari e ambientali per shaders
 //GLfloat Ks = 0.5f;
 //GLfloat Ka = 0.2f;
 GLfloat Kd = 0.8f;
 GLfloat F0 = 3.0f;
-// componente di shininess per shader Phong e Blinn-Phong
+//Componente di shininess per shader Blinn-Phong
 //GLfloat shininess = 25.0f;
 
-// parametri per l'attenuazione negli shader Phong e Blinn-Phong
+//Parametri per l'attenuazione nello shader Blinn-Phong
 //GLfloat constant = 1.0f;
 //GLfloat linear = 0.09f;
 //GLfloat quadratic = 0.032f;
@@ -99,14 +91,13 @@ glm::vec3 poolPinPos[] = {
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
 
-// Registra gli eventi che modificano le dimensioni della finestra
+//Registra gli eventi che modificano le dimensioni della finestra
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
-// Funzioni di utility
+//Funzioni di utility
 GLuint load_texture(const char* path);
 GLuint load_cubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
@@ -114,7 +105,7 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
 bool check_idle_ball(btVector3 linearVelocity);
 
-// Funzioni per gestire il gioco
+//Funzioni per gestire il gioco
 void throw_ball(btRigidBody* ball);
 
 Physics poolSimulation;
@@ -169,7 +160,7 @@ int main() {
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
-	//glfwSetScrollCallback(window, scroll_callback);
+
 	//Per avere una maggior capacità di movimento, impostare l'ultimo parametro a GLFW_CURSOR_DISABLED.
 	//Per visualizzare il puntatore, impostare l'ultimo parametro a GLFW_CURSOR_HIDDEN
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -190,8 +181,8 @@ int main() {
 	vector<string> faces = { "skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg" };
 
 	//UTILIZZO LA CLASSE SHADER CREATA PER COMPILARE IL VS ED IL FS, E LINKARLI NEL PS
-	Shader shaderNoTexture("shaders/shaderNoTextureCT.vert", "shaders/shaderNoTextureCT.frag");
 	//Shader shaderNoTexture("shaders/shaderVelvet.vert", "shaders/shaderVelvet.frag");
+	Shader shaderNoTexture("shaders/shaderNoTextureCT.vert", "shaders/shaderNoTextureCT.frag");
 	Shader shaderTexture("shaders/shaderTextureCT.vert", "shaders/shaderTextureCT.frag");
 	Shader shaderDebugger("shaders/shaderDebug.vert", "shaders/shaderDebug.frag");
 	Shader shaderSkybox("shaders/shaderSkybox.vert", "shaders/shaderSkybox.frag");
@@ -271,7 +262,7 @@ int main() {
 	playersBall.push_back(bodyBallWhite);
 	playersBall.push_back(bodyBallYellow);
 
-	//Setto le componenti per la directional light
+	//SETTO LE COMPONENTI PER LA DIRECTIONAL LIGHT PER GLI SHADER
 	shaderNoTexture.Use();
 	shaderNoTexture.setVec3("lightVector", lightDir);
 //	shaderNoTexture.setVec3("sunLight.direction", lightDir);
@@ -286,16 +277,19 @@ int main() {
 //  shaderTexture.setVec3("sunLight.diffuse", 0.5f, 0.5f, 0.5f);
 //  shaderTexture.setVec3("sunLight.specular", 1.0f, 1.0f, 1.0f);
 
+    //CARICO LE TEXTURE
 	//Carico la texture per il pavimento
 	GLuint textureFloor = load_texture("textures/floor.jpg");
 
 	//Carico le texture per lo skybox
 	GLuint textureSkybox = load_cubemap(faces);
 
+	//INIZIALIZZO LA PROJECTION MATRIX
+	projection = glm::perspective(45.0f, (float) SCR_WIDTH / (float) SCR_HEIGHT, 1.0f, 10000.0f);
+
+	//CREO LE VARIABILI DI SUPPORTO
 	// imposto il delta di tempo massimo per aggiornare la simulazione fisica
 	GLfloat maxSecPerFrame = 1.0f / 60.0f;
-
-	projection = glm::perspective(45.0f, (float) SCR_WIDTH / (float) SCR_HEIGHT, 1.0f, 10000.0f);
 
 	selectedBallPos = poolBallPos[0];
 	camera.setObjectPos(selectedBallPos);
@@ -303,9 +297,6 @@ int main() {
 	btTransform transform;
 	btVector3 linearVelocity, angularVelocity, origin, newPos;
 	glm::vec3 position;
-
-	// Setto la biglia da cui comincerà il gioco
-	//playersBall = bodyBallWhite;
 
 	//AVVIO IL RENDER LOOP
 	while (!glfwWindowShouldClose(window)) {
@@ -318,15 +309,15 @@ int main() {
 
 		glfwPollEvents();
 
+		//INIZIALIZZO LA VIEW MATRIX
 		view = camera.GetViewMatrix();
-
-		//shaderNoTexture.setVec3("viewPos", camera.Position);
 
 		if (debugMode)
 			debugger.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 		else
 			debugger.setDebugMode(btIDebugDraw::DBG_NoDebug);
 
+		//SETTO LA SIMULAZIONE FISICA ED IL DEBUGGER
 		poolSimulation.dynamicsWorld->setDebugDrawer(&debugger);
 
 		debugger.SetMatrices(&shaderDebugger, projection, view, model);
@@ -335,6 +326,7 @@ int main() {
 		poolSimulation.dynamicsWorld->stepSimulation((
 				deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
 
+		//RENDERIZZO GLI OGGETTI DELLA SCENA
 		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
 
 		draw_model_texture(shaderTexture, textureFloor, modelTable, modelPin, vectorPin);
@@ -343,12 +335,8 @@ int main() {
 
 		model = mat4(1.0f);
 
+		//GESTISCO IL CAMBIO GIOCATORE
 		linearVelocity = playersBall[player]->getLinearVelocity();
-		//angularVelocity = playersBall->getAngularVelocity();
-
-//		out << currentFrame << endl;
-//		out << "LinearVelocity:\n( " << linearVelocity.getX() << ", " << linearVelocity.getY() << ", " << linearVelocity.getZ() << " )\n" << endl;
-//		out << "AngularVelocity:\n( " << angularVelocity.getX() << ", " << angularVelocity.getY() << ", " << angularVelocity.getZ() << " )\n" << endl;
 
 		if (check_idle_ball(linearVelocity) && checkShoot) {
 			// Non appena la biglia del giocatore si ferma, passo all'altro giocatore, spostando la camera sull'altra biglia
@@ -370,6 +358,7 @@ int main() {
 		glfwSwapBuffers(window);
 	}
 
+	//PULISCO LA MEMORIA
 	shaderTexture.Delete();
 	shaderNoTexture.Delete();
 	shaderDebugger.Delete();
@@ -382,6 +371,7 @@ int main() {
 	return 0;
 }
 
+//GESTISCO GLI INPUT DA TASTIERA
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	// if ESC is pressed, close the application
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -392,10 +382,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		debugMode = !debugMode;
 }
 
+//GESTISCO LA CREAZIONE DELLA FINESTRA
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
+//GESTISCO I MOVIMENTI DEL MOUSE
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	if (firstMouse) {
 		lastX = xpos;
@@ -405,34 +397,26 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	}
 
 	GLfloat xOffset = xpos - lastX;
-	//GLfloat yOffset = lastY - ypos;
 
 	lastX = xpos;
 	lastY = ypos;
 
 	view = camera.RotateAroundPoint(xOffset, glm::vec3(0.0f, 1.0f, 0.0f));
 
-	//camera.ProcessMouseMovement(xOffset, yOffset);
-
 	mouseX = xpos;
 	mouseY = ypos;
 }
 
+//GESTISCO GLI INPUT DEL MOUSE
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		//cout << "Left button pressed at " << currentFrame << endl;
 		throw_ball(playersBall[player]);
 	}
-
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-		cout << "Right button pressed!" << endl;
-	}
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-	//camera.ProcessMouseScroll(yoffset);
-}
-
+//FUNZIONE UTILIZZATA PER IL LANCIO DELLA BIGLIA
+//Applico un impulso al centro della biglia, calcolando la direzione mediante la posizione del mouse.
 void throw_ball(btRigidBody* ball) {
 	// Se la palla non è ancora ferma, l'altro giocatore non può tirare.
 	if (!checkShoot) {
@@ -462,7 +446,8 @@ void throw_ball(btRigidBody* ball) {
 	}
 }
 
-// Carico un'immagine e creo texture OpengGL
+//CARICO LE TEXTURE
+//Carico un'immagine e creo texture OpengGL
 GLuint load_texture(char const * path) {
 	GLuint textureID;
 	GLint width, height, nrComponents;
@@ -498,7 +483,7 @@ GLuint load_texture(char const * path) {
 	return textureID;
 }
 
-// Carico le immagini per formare una Cubemap
+//Carico le immagini per formare una Cubemap
 GLuint load_cubemap(vector<string> faces) {
 	GLuint textureID;
 	GLint width, height, nrChannels;
@@ -530,7 +515,8 @@ GLuint load_cubemap(vector<string> faces) {
 	return textureID;
 }
 
-// Imposto lo shader e renderizzo i modelli degli oggetti senza texture
+//RENDERIZZO GLI OGGETTI DELLA SCENA
+//Imposto lo shader e renderizzo i modelli degli oggetti senza texture
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow) {
 	GLfloat matrix[16];
 	btTransform transform;
@@ -540,7 +526,8 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 
 	//RENDERIZZO LE BIGLIE DA BILIARDO
 	//INIZIO DALLA BIANCA
-	//COMPONENTI PER BLINN-PHONG
+
+	//COMPONENTI PER SHADER BLINN-PHONG
 //	shaderNT.setVec3("material.ambient", 0.25, 0.20725, 0.20725);
 //	shaderNT.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
 //	shaderNT.setVec3("material.specular", 0.296648, 0.296648, 0.296648);
@@ -550,7 +537,8 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 //	shaderNT.setFloat("Kd", Kd);
 //	shaderNT.setFloat("Ka", Ka);
 //	shaderNT.setFloat("Ks", Ks);
-	//COMPONENTI PER COOK-TORRANCE
+
+	//COMPONENTI PER SHADER COOK-TORRANCE
 	shaderNT.setFloat("m", 0.3);
 	shaderNT.setFloat("F0", F0);
 	shaderNT.setFloat("Kd", Kd);
@@ -612,24 +600,28 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	ball.Draw(shaderNT);
 }
 
-// Imposto lo shader e renderizzo i modelli degli oggetti con texture
+//Imposto lo shader e renderizzo i modelli degli oggetti con texture
 void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin) {
 	GLfloat matrix[16];
 	btTransform transform;
 	//glm::mat4 physicsMatrix(1.0f);
 
-	//RENDERIZZO IL TAVOLO
-	shaderT.Use();
-	shaderT.setFloat("m", 0.6);
-	shaderT.setFloat("F0", 4.0);
-	shaderT.setFloat("Kd", Kd);
+	//RENDERIZZO I MODELLI CON TEXTURE
+	//INIZIO DAL TAVOLO
 
+	//COMPONENTI PER SHADER BLINN-PHONG
 //	shaderT.setVec3("material.specular", specularColor);
 //	shaderT.setFloat("material.shininess", shininess);
 //
 //	shaderT.setFloat("Kd", Kd);
 //	shaderT.setFloat("Ka", Ka);
 //	shaderT.setFloat("Ks", Ks);
+
+	//COMPONENTI PER SHADER COOK-TORRANCE
+	shaderT.Use();
+	shaderT.setFloat("m", 0.6);
+	shaderT.setFloat("F0", 4.0);
+	shaderT.setFloat("Kd", Kd);
 
 	shaderT.setFloat("repeat", 1.0f);
 
@@ -673,7 +665,7 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 	}
 }
 
-// Imposto lo shader e renderizzo la Cubemap
+//Imposto lo shader e renderizzo la Cubemap
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture) {
 	glDepthFunc(GL_LEQUAL);
 	shaderSB.Use();
@@ -692,10 +684,11 @@ void draw_skybox(Shader &shaderSB, Model &box, GLuint texture) {
 	glDepthFunc(GL_LESS);
 }
 
+//FUNZIONE UTILIZZATA PER CONTROLLARE LA SITUAZIONE DI UNA BIGLIA
+//Se la linearVelocity assume un valore per cui la biglia è ferma, restituisco true in modo che venga cambiato giocatore/biglia
 bool check_idle_ball(btVector3 linearVelocity) {
 	if (abs(linearVelocity.getX()) < 0.01 && abs(linearVelocity.getY()) < 0.01 && abs(linearVelocity.getZ()) < 0.01)
 		return true;
 
 	return false;
 }
-

@@ -1,7 +1,6 @@
 /*
-Classe Shader v2
-- implementazione classe per caricamento codice shader e creazione Program Shader
-
+Classe Shader
+- implementazione classe per caricamento Vertex Shader, Fragment Shader e creazione Program Shader
 */
 
 #ifndef SHADER_H
@@ -26,8 +25,16 @@ private:
 	string shaderName;
 	
 public:
+	// Attributo che conterra' l'ID con cui verra' salvato il Program Shader in memoria
     GLuint ID;
-    // Costruttore della classe Shader
+
+    /*
+     * Costruttore
+     * Prende in input i seguenti valori:
+     * - vertexPath: char*, stringa che memorizza il path del file .vert
+     * - fragmentPath: char*, stringa che memorizza il path del file .frag
+     * - geometryPath: char*, stringa che memorizza il path del file .geom, impostato di default a nullptr.
+     */
     Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr){
 		// Passo 0: salvo il nome dello shader, in modo da avere informazioni piu' dettagliate negli errori
 		char* tmp = (char*) calloc(50, sizeof(char));
@@ -54,16 +61,20 @@ public:
             vShaderFile.open(vertexPath);
             fShaderFile.open(fragmentPath);
             stringstream vShaderStream, fShaderStream;
+
             // Leggo i file mediante gli stream
             vShaderStream << vShaderFile.rdbuf();
-            fShaderStream << fShaderFile.rdbuf();		
+            fShaderStream << fShaderFile.rdbuf();
+
             // Chiudo i file
             vShaderFile.close();
             fShaderFile.close();
+
             // Converto gli stream in stringa
             vertexCode = vShaderStream.str();
             fragmentCode = fShaderStream.str();			
-            // Se Ã¨ presente il GS, passo alla lettura del file
+
+            // Se e' presente il GS, passo alla lettura del file
             if(geometryPath != nullptr) {
                 gShaderFile.open(geometryPath);
                 stringstream gShaderStream;
@@ -79,6 +90,7 @@ public:
         // converto le stringhe in puntatori a char
 		const char* vShaderCode = vertexCode.c_str();
         const char * fShaderCode = fragmentCode.c_str();
+
         // Passo 2: compilo gli shader
         GLuint vertex, fragment;
                 
@@ -94,7 +106,7 @@ public:
         glCompileShader(fragment);
         checkCompileErrors(fragment, "FRAGMENT");
         
-		// Se Ã¨ presente il GS, lo compilo
+		// Se e' presente il GS, lo compilo
         GLuint geometry;
         if(geometryPath != nullptr){
             const char * gShaderCode = geometryCode.c_str();
@@ -104,7 +116,7 @@ public:
             checkCompileErrors(geometry, "GEOMETRY");
         }
 		
-        // Creo Shader Program
+        // Passo 3: Creo Program Shader
         this->ID = glCreateProgram();
         
 		glAttachShader(this->ID, vertex);
@@ -124,66 +136,148 @@ public:
             glDeleteShader(geometry);
     }
 	
-    // "Installa" il program shader come parte del processo di rendering attuale
+    /*
+     * Metodo che attiva il program shader come parte del processo di rendering attuale
+     */
     void Use() { 
         glUseProgram(this->ID); 
     }
-	// Cancella il program shader in fase di chiusura dell'applicazione
+
+	/*
+	 * Metodo che cancella il program shader in fase di chiusura dell'applicazione
+	 */
     void Delete() {    
 		glDeleteProgram(this->ID); 
 	}
 	
-    // Funzioni Uniform
+    /*
+     * Metodo di utility. Utilizzato per settare un bool nello shader attivo.
+     * Prendo in input i seguenti valori:
+     * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+     * - value: bool, valore da dare alla variabile uniform individuata dal precedente parametro
+     */
     void setBool(const string &name, bool value) const {
         glUniform1i(glGetUniformLocation(this->ID, name.c_str()), (int)value); 
     }
     
+    /*
+	 * Metodo di utility. Utilizzato per settare un int nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - value: int, valore da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setInt(const string &name, int value) const {
         glUniform1i(glGetUniformLocation(this->ID, name.c_str()), value); 
     }
     
+    /*
+	 * Metodo di utility. Utilizzato per settare un float nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - value: float, valore da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setFloat(const string &name, float value) const {
         glUniform1f(glGetUniformLocation(this->ID, name.c_str()), value); 
     }
     
+    /*
+	 * Metodo di utility. Utilizzato per settare un vec2 nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - value: vec2, valore da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setVec2(const string &name, const glm::vec2 &value) const {
         glUniform2fv(glGetUniformLocation(this->ID, name.c_str()), 1, &value[0]); 
     }
 	
+    /*
+	 * Metodo di utility. Utilizzato per settare un vec2 nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - x, y: float, valori da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setVec2(const string &name, float x, float y) const {
         glUniform2f(glGetUniformLocation(this->ID, name.c_str()), x, y); 
     }
     
+    /*
+	 * Metodo di utility. Utilizzato per settare un vec3 nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - value: vec3, valore da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setVec3(const string &name, const glm::vec3 &value) const {
         glUniform3fv(glGetUniformLocation(this->ID, name.c_str()), 1, &value[0]); 
     }
 	
+    /*
+	 * Metodo di utility. Utilizzato per settare un vec3 nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - x, y, z: float, valori da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setVec3(const string &name, float x, float y, float z) const {
         glUniform3f(glGetUniformLocation(this->ID, name.c_str()), x, y, z); 
     }
     
+    /*
+	 * Metodo di utility. Utilizzato per settare un vec4 nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - value: vec4, valore da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setVec4(const string &name, const glm::vec4 &value) const {
         glUniform4fv(glGetUniformLocation(this->ID, name.c_str()), 1, &value[0]); 
     }
 	
+    /*
+	 * Metodo di utility. Utilizzato per settare un vec4 nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - x, y, z, w: float, valori da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setVec4(const string &name, float x, float y, float z, float w) {
         glUniform4f(glGetUniformLocation(this->ID, name.c_str()), x, y, z, w); 
     }
     
+    /*
+	 * Metodo di utility. Utilizzato per settare un mat2 nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - value: mat2, valore da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setMat2(const string &name, const glm::mat2 &mat) const {
         glUniformMatrix2fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
     
+    /*
+	 * Metodo di utility. Utilizzato per settare un mat3 nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - value: mat3, valore da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setMat3(const string &name, const glm::mat3 &mat) const {
         glUniformMatrix3fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
     
+    /*
+	 * Metodo di utility. Utilizzato per settare un mat4 nello shader attivo.
+	 * Prendo in input i seguenti valori:
+	 * - name: string, nome con cui è salvata nello shader la variabile di tipo uniform associata
+	 * - value: mat4, valore da dare alla variabile uniform individuata dal precedente parametro
+	 */
     void setMat4(const string &name, const glm::mat4 &mat) const {
         glUniformMatrix4fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
 private:
-    // Funzione utilizzata per controllare eventuali errori nella compilazione di VS e FS
+    /*
+     * Metodo utilizzato per controllare eventuali errori nella compilazione di VS e FS e nel link per la creazione del PS.
+     * In caso affermativo, viene segnalato un messaggio con informazioni riguardo l'errore.
+     * Prende in input i seguenti valori:
+     * - shader: GLuint, contiene il valore ID con cui viene salvato lo shader in memoria
+     * - type: string, variabile contenente il tipo di shader da analizzare per la ricerca di errori.
+     */
     void checkCompileErrors(GLuint shader, string type) {
         GLint success;
         GLchar infoLog[1024];
