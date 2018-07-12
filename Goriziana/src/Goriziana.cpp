@@ -35,6 +35,8 @@
 #include <bullet/btBulletDynamicsCommon.h>
 #include "BulletDebugDrawer.h"
 
+#define NR_LIGHTS 2
+
 using namespace std;
 
 //Dimensioni della finestra dell'applicazione
@@ -55,14 +57,15 @@ GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
 //Posizione ottimale della luce del sole
-glm::vec3 lightDir = glm::vec3(-6.0f, 10.0f, -9.0f);
-//glm::vec3 lightDir = glm::vec3(0.0f, 1.0f, 0.0f);
+glm::vec3 lightDirs[] = {glm::vec3(-6.0f, 10.0f, -9.0f), glm::vec3(10.0f, 10.0f, 10.0f)};
+//glm::vec3 lightDirs[] = {glm::vec3(0.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f)};
 
 //Pesi della componente diffusive, speculari e ambientali per shaders
 //GLfloat Ks = 0.5f;
 //GLfloat Ka = 0.2f;
-GLfloat Kd = 0.9f;
-GLfloat F0 = 3.0f;
+GLfloat Kd = 0.7f;
+GLfloat F0[] = {2.0f, 0.1f};
+GLfloat m = 0.3f;
 //Componente di shininess per shader Blinn-Phong
 //GLfloat shininess = 25.0f;
 
@@ -263,15 +266,15 @@ int main() {
 	playersBall.push_back(bodyBallYellow);
 
 	//SETTO LE COMPONENTI PER LA DIRECTIONAL LIGHT PER GLI SHADER
-	shaderNoTexture.Use();
-	shaderNoTexture.setVec3("lightVector", lightDir);
+//	shaderNoTexture.Use();
+//	shaderNoTexture.setVec3("lightVector", lightDir);
 //	shaderNoTexture.setVec3("sunLight.direction", lightDir);
 //	shaderNoTexture.setVec3("sunLight.ambient", glm::vec3(0.1f));
 //	shaderNoTexture.setVec3("sunLight.diffuse", glm::vec3(0.3f));
 //	shaderNoTexture.setVec3("sunLight.specular", glm::vec3(0.8f));
 
-    shaderTexture.Use();
-    shaderTexture.setVec3("lightVector", lightDir);
+//  shaderTexture.Use();
+//  shaderTexture.setVec3("lightVector", lightDir);
 //  shaderTexture.setVec3("sunLight.direction", lightDir);
 //  shaderTexture.setVec3("sunLight.ambient", 0.2f, 0.2f, 0.2f);
 //  shaderTexture.setVec3("sunLight.diffuse", 0.5f, 0.5f, 0.5f);
@@ -522,7 +525,6 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	btTransform transform;
 
 	shaderNT.Use();
-	shaderNT.setFloat("shininess", 64.0);
 
 	//RENDERIZZO LE BIGLIE DA BILIARDO
 	//INIZIO DALLA BIANCA
@@ -539,8 +541,13 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 //	shaderNT.setFloat("Ks", Ks);
 
 	//COMPONENTI PER SHADER COOK-TORRANCE
-	shaderNT.setFloat("m", 0.2);
-	shaderNT.setFloat("F0", F0);
+	for (GLuint i = 0; i < NR_LIGHTS; i++) {
+		string number = to_string(i);
+		shaderNT.setVec3(("lightVectors[" + number + "]").c_str(), lightDirs[i]);
+		shaderNT.setFloat(("F0[" + number + "]").c_str(), F0[i]);
+	}
+
+	shaderNT.setFloat("m", m);
 	shaderNT.setFloat("Kd", Kd);
 
 	shaderNT.setVec3("diffuseColor", 1.0f, 1.0f, 1.0f);
@@ -619,9 +626,17 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 
 	//COMPONENTI PER SHADER COOK-TORRANCE
 	shaderT.Use();
+
+	for (GLuint i = 0; i < NR_LIGHTS; i++) {
+		string number = to_string(i);
+		shaderT.setVec3(("lightVectors[" + number + "]").c_str(), lightDirs[i]);
+//		shaderT.setFloat(("m[" + number + "]").c_str(), m[i]);
+//		shaderT.setFloat(("F0[" + number + "]").c_str(), F0[i]);
+	}
+
 	shaderT.setFloat("m", 0.6);
 	shaderT.setFloat("F0", 4.0);
-	shaderT.setFloat("Kd", Kd);
+	shaderT.setFloat("Kd", 1.0);
 
 	shaderT.setFloat("repeat", 10.0f);
 
@@ -643,6 +658,8 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 
 	//RENDERIZZO I BIRILLI
 	shaderT.setFloat("m", 0.4);
+	shaderT.setFloat("F0", 2.0);
+	shaderT.setFloat("Kd", 0.7);
 	shaderT.setFloat("repeat", 1.0f);
 
 	for (int i = 0; i < 5; i++){

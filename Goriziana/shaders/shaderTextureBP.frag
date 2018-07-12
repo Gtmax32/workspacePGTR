@@ -77,7 +77,6 @@ void main(){
 		
 		vec3 specular = Ks * specularValue * material.specular * sunLight.specular;
 		// aggiungo le componenti diffusiva e speculari al colore finale 
-		// NB: in questa implementazione la somma dei pesi potrebbe non essere uguale a 1
 		color = ambient + diffuse + specular;
 	}
     // unisco color e reflectedcolor sulla base di reflectamount

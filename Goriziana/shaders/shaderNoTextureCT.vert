@@ -1,49 +1,51 @@
 #version 330 core
 
-// vertex position in world coordinates
+//Numero di directional light nella scena
+#define NR_LIGHTS 2
+
+//Posizione vertice in coordinate mondo
 layout (location = 0) in vec3 position;
-// vertex normal in world coordinate
+//Normale al vertice
 layout (location = 1) in vec3 normal;
 
-// model matrix
+//Model matrix
 uniform mat4 modelMatrix;
-// view matrix
+//View matrix
 uniform mat4 viewMatrix;
-// Projection matrix
+//Projection matrix
 uniform mat4 projectionMatrix;
 
-// normals transformation matrix (= transpose of the inverse of the model-view matrix)
+//Matrice di trasformazione delle normali
 uniform mat3 normalMatrix;
 
-// the light incidence direction of the directional light (passed as uniform)
-uniform vec3 lightVector;
+//Vettori di incidenza delle diverse directional light
+uniform vec3 lightVectors[NR_LIGHTS];
 
-// light incidence direction (in view coordinate)
-out vec3 lightDir;
+//Vettori di incidenza in coordinate vista
+out vec3 lightDirs[NR_LIGHTS];
 
-// the transformed normal (in view coordinate) is set as an output variable, to be "passed" to the fragment shader
-// this means that the normal values in each vertex will be interpolated on each fragment created during rasterization between two vertices
+//Vettori normali in coordinate vista
 out vec3 vNormal;
 
-// in the fragment shader, we need to calculate also the reflection vector for each fragment
-// to do this, we need to calculate in the vertex shader the view direction (in view coordinates) for each vertex, and to have it interpolated for each fragment by the rasterization stage
+//Vettore da vertice a camera
 out vec3 vViewPosition;
 
 
 void main(){
-	// vertex position in ModelView coordinate (see the last line for the application of projection)
-	// when I need to use coordinates in camera coordinates, I need to split the application of model and view transformations from the projection transformations
+	//Calcolo la posizione del vertice in coordinate ModelView
 	vec4 mvPosition = viewMatrix * modelMatrix * vec4( position, 1.0 );
 
-	// view direction, negated to have vector from the vertex to the camera
+	//Calcolo la direzione di vista, negata per avere il verso dal vertice alla camera
 	vViewPosition = -mvPosition.xyz;
 
-	// transformations are applied to the normal
+	//Applico le trasformazioni alle coordinate dei vettori normali
 	vNormal = normalize( normalMatrix * normal );
 
-	// we consider a directional light. The direction of light has been passed as an uniform. We apply the view transformation in order to have the direction in camera coordinates
-	lightDir = vec3(viewMatrix  * vec4(lightVector, 0.0));
+	//Calcolo il vettore di incidenza delle directional light
+	for (int i = 0; i < NR_LIGHTS; i++){
+		lightDirs[i] = vec3(viewMatrix  * vec4(lightVectors[i], 0.0));
+	}	
 
-	// we apply the projection transformation
+	//Applico la Projection Matrix alla posizione del vertice
 	gl_Position = projectionMatrix * mvPosition;
 }
