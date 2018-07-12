@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <map>
 // THIS IS OPTIONAL AND NOT REQUIRED, ONLY USE THIS IF YOU DON'T WANT GLAD TO INCLUDE windows.h
 // GLAD will include windows.h for APIENTRY if it was not previously defined.
 // Make sure you have the correct definition for APIENTRY for platforms which define _WIN32 but don't use __stdcall
@@ -11,7 +12,6 @@
 
 #include <glad/glad.h>
 
-// GLFW
 #include <glfw/glfw3.h>
 
 #ifdef _WINDOWS_
@@ -35,9 +35,25 @@
 #include <bullet/btBulletDynamicsCommon.h>
 #include "BulletDebugDrawer.h"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include "Character.h"
+
 #define NR_LIGHTS 2
 
 using namespace std;
+
+/********** struct CHARACTER **********/
+struct Character {
+	//Campo utilizzato per memorizzare l'ID della texture del glyph
+	GLuint textureID;
+	//Campo in cui è salvata la dimensione del glyph
+	glm::ivec2 size;
+	//Campo in cui è salvato l'offset dalla baseline all'angolo in alto a sinistra
+	glm::ivec2 bearing;
+	//Campo in cui è salvato l'offset dal punto advance al carattere successivo
+	GLuint advance;
+};
 
 //Dimensioni della finestra dell'applicazione
 const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
@@ -107,14 +123,22 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pin, vector<btRigidBody*> vectorPin);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
 bool check_idle_ball(btVector3 linearVelocity);
+void create_dictionary();
+void render_text(Shader &shader, string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color);
 
 //Funzioni per gestire il gioco
 void throw_ball(btRigidBody* ball);
 
+//Libreria per la simulazione fisica
 Physics poolSimulation;
+//Classe che eredita tutte le componenti per eseguire il debug della libreria fisica
 BulletDebugDrawer debugger;
+//Vettore contenente i btRigidBody associati alle biglie dei giocatori
 vector<btRigidBody*> playersBall;
+//Vettore contenente i btRigidBody associati ai birilli della scena
 vector<btRigidBody*> vectorPin;
+//Map contenente i caratteri pre-caricati per la scrittura del testo
+map<GLchar, Character> dictionary;
 
 glm::vec3 selectedBallPos(0.0f);
 
@@ -179,6 +203,16 @@ int main() {
 
 	//SETTO IL CURSORE AL CENTRO DELLA SCHERMATA
 	glfwSetCursorPos(window, (double) (SCR_WIDTH / 2), (double) (SCR_HEIGHT / 2));
+
+	FT_Library ft;
+	if(FT_Init_FreeType(&ft))
+		cout << "Errore nell'inizializzazione della libreria FreeType!" << endl;
+
+	FT_Face face;
+	if (FT_New_Face(ft, "font/arial.ttf", 0, &face))
+		cout << "Errore nel caricamento del font!" << endl;
+
+	FT_Set_Pixel_Sizes(face, 0, 48);
 
 	//VETTORE UTILIZZATO PER CARICARE LA CUBEMAP
 	vector<string> faces = { "skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg" };
@@ -709,4 +743,12 @@ bool check_idle_ball(btVector3 linearVelocity) {
 		return true;
 
 	return false;
+}
+
+void create_dictionary(){
+
+}
+
+void render_text(Shader &shader, string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color){
+
 }
