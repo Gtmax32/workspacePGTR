@@ -623,7 +623,7 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 	shaderT.setFloat("F0", 4.0);
 	shaderT.setFloat("Kd", Kd);
 
-	shaderT.setFloat("repeat", 1.0f);
+	shaderT.setFloat("repeat", 10.0f);
 
 	shaderT.setMat4("projectionMatrix", projection);
 
