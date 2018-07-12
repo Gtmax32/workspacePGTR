@@ -61,7 +61,7 @@ glm::vec3 lightDir = glm::vec3(-6.0f, 10.0f, -9.0f);
 //Pesi della componente diffusive, speculari e ambientali per shaders
 //GLfloat Ks = 0.5f;
 //GLfloat Ka = 0.2f;
-GLfloat Kd = 0.8f;
+GLfloat Kd = 0.9f;
 GLfloat F0 = 3.0f;
 //Componente di shininess per shader Blinn-Phong
 //GLfloat shininess = 25.0f;
@@ -539,7 +539,7 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 //	shaderNT.setFloat("Ks", Ks);
 
 	//COMPONENTI PER SHADER COOK-TORRANCE
-	shaderNT.setFloat("m", 0.3);
+	shaderNT.setFloat("m", 0.2);
 	shaderNT.setFloat("F0", F0);
 	shaderNT.setFloat("Kd", Kd);
 
@@ -643,6 +643,7 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 
 	//RENDERIZZO I BIRILLI
 	shaderT.setFloat("m", 0.4);
+	shaderT.setFloat("repeat", 1.0f);
 
 	for (int i = 0; i < 5; i++){
 		model = glm::mat4(1.0f);
