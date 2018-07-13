@@ -98,11 +98,11 @@ glm::vec3(-5.5f, 6.62f, 2.2f), // biglia gialla
 glm::vec3(5.5f, 6.62f, 0.0f) // biglia rossa
 };
 
-glm::vec3 poolPinPos[] = { glm::vec3(0.70f, 6.40f, 0.0f), // birillo in alto
-glm::vec3(0.0f, 6.40f, 0.70f), // birillo a destra
-glm::vec3(-0.70f, 6.40f, 0.0f), // birillo in basso
-glm::vec3(0.00f, 6.40f, -0.70f), // birillo a sinistra
-glm::vec3(0.0f, 6.40f, 0.0f), // birillo al centro
+glm::vec3 poolPinPos[] = { glm::vec3(0.70f, 6.23f, 0.0f), // birillo in alto
+glm::vec3(0.0f, 6.23f, 0.70f), // birillo a destra
+glm::vec3(-0.70f, 6.23f, 0.0f), // birillo in basso
+glm::vec3(0.00f, 6.23f, -0.70f), // birillo a sinistra
+glm::vec3(0.0f, 6.23f, 0.0f), // birillo al centro
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -276,7 +276,7 @@ int main() {
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
 	// Dimensione rigibody Cylinder per modello birillo
-	glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.2f, 0.09f);
+	glm::vec3 bodyPinSize = glm::vec3(0.08f, 0.2f, 0.08f);
 
 	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -770,7 +770,7 @@ void redraw_pins(Shader &shader, Model &pin, vector<btRigidBody*> vectorPin){
 
 		transform.getOpenGLMatrix(matrix);
 
-		model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
+		//model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
 		//model = glm::translate(model, glm::vec3(poolPinPos[i].x, poolPinPos[i].y -0.1f, poolPinPos[i].z));
 		// Scala per modello cilindro
 		//model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));
