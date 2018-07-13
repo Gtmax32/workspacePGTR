@@ -331,6 +331,8 @@ int main() {
 	glm::vec3 position;
 	GLfloat playerIndexOffset = 40.0f;
 
+	int counterPoint[] = {0, 0};
+
 	//AVVIO IL RENDER LOOP
 	while (!glfwWindowShouldClose(window)) {
 		GLfloat currentFrame = glfwGetTime();
@@ -366,8 +368,10 @@ int main() {
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
 
 		render_text(shaderText, "*", 15.0f, 670.0f - playerIndexOffset * player, 1.0f, glm::vec3(1.0f));
-		render_text(shaderText, "Giocatore 1", 40.0f, 675.0f, 1.0f, glm::vec3(1.0f));
-		render_text(shaderText, "Giocatore 2", 40.0f, 635.0f, 1.0f, glm::vec3(1.0f));
+		render_text(shaderText, "Giocatore 1 | ", 40.0f, 675.0f, 1.0f, glm::vec3(1.0f));
+		render_text(shaderText, to_string(counterPoint[player]), 250.0f, 675.0f, 1.0f, glm::vec3(1.0f));
+		render_text(shaderText, "Giocatore 2 | ", 40.0f, 635.0f, 1.0f, glm::vec3(1.0f));
+		render_text(shaderText, to_string(counterPoint[!player]), 250.0f, 635.0f, 1.0f, glm::vec3(1.0f));
 
 		model = mat4(1.0f);
 
@@ -402,6 +406,11 @@ int main() {
 
 			for(int i = 0; i < 5; i++){
 				temp.setValue(poolPinPos[i].x, poolPinPos[i].y, poolPinPos[i].z);
+				vectorPin[i]->getMotionState()->getWorldTransform(transform);
+
+				if (transform.getOrigin() != temp){
+					counterPoint[player]++;
+				}
 
 				transform.setIdentity();
 				transform.setOrigin(temp);
@@ -409,7 +418,6 @@ int main() {
 				vectorPin[i]->getMotionState()->setWorldTransform(transform);
 				vectorPin[i]->setWorldTransform(transform);
 			}
-
 		}
 
 		glfwSwapBuffers(window);
