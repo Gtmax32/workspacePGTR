@@ -78,7 +78,7 @@ glm::vec3 lightDirs[] = { glm::vec3(-6.0f, 10.0f, -9.0f), glm::vec3(10.0f, 10.0f
 //Pesi della componente diffusive, speculari e ambientali per shaders
 //GLfloat Ks = 0.5f;
 //GLfloat Ka = 0.2f;
-GLfloat Kd = 0.7f;
+GLfloat Kd = 0.8f;
 GLfloat F0[] = { 2.0f, 0.1f };
 GLfloat m = 0.3f;
 //Componente di shininess per shader Blinn-Phong
@@ -117,8 +117,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 GLuint load_texture(const char* path);
 GLuint load_cubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
-void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pin, vector<
-		btRigidBody*> vectorPin);
+void draw_model_texture(Shader &shaderT, Model &table, Model &pin, vector<btRigidBody*> vectorPin);
+void redraw_pins(Shader &shader, Model &pin, vector<btRigidBody*> vectorPin);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
 bool check_idle_ball(btVector3 linearVelocity);
 void create_dictionary(FT_Face face);
@@ -239,7 +239,6 @@ int main() {
 	//UTILIZZO LA CLASSE MODEL CREATA PER CARICARE E VISUALIZZARE IL MODELLO 3D
 	Model modelTable("models/table/gTable.obj");
 	Model modelBall("models/ball/ball.obj");
-	//Model modelPin("models/pin/cylinder.obj");
 	Model modelPin("models/pin/scaledPin.obj");
 	Model modelSkybox("models/cube/cube.obj");
 
@@ -278,10 +277,6 @@ int main() {
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
 	// Dimensione rigibody Cylinder per modello birillo
 	glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.2f, 0.09f);
-	// Dimensione rigibody Capsule per modello birillo
-	//glm::vec3 bodyPinSize = glm::vec3(0.09f, 0.25f, 0.09f);
-	// Dimensione rigibody per modello cilindro
-	//glm::vec3 bodyPinSize = glm::vec3(0.1f, 0.18f, 0.1f);
 
 	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -311,25 +306,7 @@ int main() {
 	playersBall.push_back(bodyBallWhite);
 	playersBall.push_back(bodyBallYellow);
 
-	//SETTO LE COMPONENTI PER LA DIRECTIONAL LIGHT PER GLI SHADER
-//	shaderNoTexture.Use();
-//	shaderNoTexture.setVec3("lightVector", lightDir);
-//	shaderNoTexture.setVec3("sunLight.direction", lightDir);
-//	shaderNoTexture.setVec3("sunLight.ambient", glm::vec3(0.1f));
-//	shaderNoTexture.setVec3("sunLight.diffuse", glm::vec3(0.3f));
-//	shaderNoTexture.setVec3("sunLight.specular", glm::vec3(0.8f));
-
-//  shaderTexture.Use();
-//  shaderTexture.setVec3("lightVector", lightDir);
-//  shaderTexture.setVec3("sunLight.direction", lightDir);
-//  shaderTexture.setVec3("sunLight.ambient", 0.2f, 0.2f, 0.2f);
-//  shaderTexture.setVec3("sunLight.diffuse", 0.5f, 0.5f, 0.5f);
-//  shaderTexture.setVec3("sunLight.specular", 1.0f, 1.0f, 1.0f);
-
 	//CARICO LE TEXTURE
-	//Carico la texture per il pavimento
-	GLuint textureFloor = load_texture("textures/floor.jpg");
-
 	//Carico le texture per lo skybox
 	GLuint textureSkybox = load_cubemap(faces);
 
@@ -349,7 +326,8 @@ int main() {
 	camera.setObjectPos(selectedBallPos);
 
 	btTransform transform;
-	btVector3 linearVelocity, angularVelocity, origin, newPos;
+	btVector3 linearVelocity, origin, temp;
+
 	glm::vec3 position;
 	GLfloat playerIndexOffset = 40.0f;
 
@@ -378,13 +356,12 @@ int main() {
 		debugger.SetMatrices(&shaderDebugger, projection, view, model);
 		poolSimulation.dynamicsWorld->debugDrawWorld();
 
-		poolSimulation.dynamicsWorld->stepSimulation((
-				deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
+		poolSimulation.dynamicsWorld->stepSimulation((deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
 
 		//RENDERIZZO GLI OGGETTI DELLA SCENA
 		draw_model_notexture(shaderNoTexture, modelBall, bodyBallWhite, bodyBallRed, bodyBallYellow);
 
-		draw_model_texture(shaderTexture, textureFloor, modelTable, modelPin, vectorPin);
+		draw_model_texture(shaderTexture, modelTable, modelPin, vectorPin);
 
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
 
@@ -413,14 +390,26 @@ int main() {
 
 			player = !player;
 
-			/*for (int i = 0; i < 5; i++){
-			 newPos = btVector3(poolPinPos[i].x, poolPinPos[i].y, poolPinPos[i].z);
+			/*cout << "In Render Loop..." << endl;
 
-			 transform.setIdentity();
-			 transform.setOrigin(newPos);
+			for(int i = 0; i < vectorPin.size(); i++){
+				vectorPin[i]->getMotionState()->getWorldTransform(transform);
+				temp = transform.getOrigin();
+				cout << "Pin[" << i << "] = " << temp.getX() << " - " << temp.getY()<< " - " << temp.getZ() << endl;
+			}*/
 
-			 vectorPin[i]->setWorldTransform(transform);
-			 }*/
+			//redraw_pins(shaderTexture, modelPin, vectorPin);
+
+			for(int i = 0; i < 5; i++){
+				temp.setValue(poolPinPos[i].x, poolPinPos[i].y, poolPinPos[i].z);
+
+				transform.setIdentity();
+				transform.setOrigin(temp);
+
+				vectorPin[i]->getMotionState()->setWorldTransform(transform);
+				vectorPin[i]->setWorldTransform(transform);
+			}
+
 		}
 
 		glfwSwapBuffers(window);
@@ -431,6 +420,7 @@ int main() {
 	shaderNoTexture.Delete();
 	shaderDebugger.Delete();
 	shaderSkybox.Delete();
+	shaderText.Delete();
 
 	poolSimulation.Clear();
 
@@ -673,11 +663,9 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 }
 
 //Imposto lo shader e renderizzo i modelli degli oggetti con texture
-void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pin, vector<
-		btRigidBody*> vectorPin) {
+void draw_model_texture(Shader &shaderT, Model &table, Model &pin, vector<btRigidBody*> vectorPin) {
 	GLfloat matrix[16];
 	btTransform transform;
-	//glm::mat4 physicsMatrix(1.0f);
 
 	//RENDERIZZO I MODELLI CON TEXTURE
 	//INIZIO DAL TAVOLO
@@ -749,6 +737,62 @@ void draw_model_texture(Shader &shaderT, GLuint texture, Model &table, Model &pi
 	}
 }
 
+void redraw_pins(Shader &shader, Model &pin, vector<btRigidBody*> vectorPin){
+	GLfloat matrix[16];
+	btTransform transform, transform1;
+	btVector3 newPos;
+
+	shader.Use();
+
+	for (GLuint i = 0; i < NR_LIGHTS; i++) {
+		string number = to_string(i);
+		shader.setVec3(("lightVectors[" + number + "]").c_str(), lightDirs[i]);
+//		shaderT.setFloat(("m[" + number + "]").c_str(), m[i]);
+//		shaderT.setFloat(("F0[" + number + "]").c_str(), F0[i]);
+	}
+
+	shader.setFloat("m", 0.4);
+	shader.setFloat("F0", 2.0);
+	shader.setFloat("Kd", 0.7);
+	shader.setFloat("repeat", 1.0f);
+
+	for (int i = 0; i < 5; i++) {
+		model = glm::mat4(1.0f);
+		normal = glm::mat3(1.0f);
+
+		newPos = btVector3(poolPinPos[i].x, poolPinPos[i].y, poolPinPos[i].z);
+
+		transform.setIdentity();
+		transform.setOrigin(newPos);
+
+		vectorPin[i]->setWorldTransform(transform);
+		vectorPin[i]->getMotionState()->setWorldTransform(transform);
+
+		transform.getOpenGLMatrix(matrix);
+
+		model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
+		//model = glm::translate(model, glm::vec3(poolPinPos[i].x, poolPinPos[i].y -0.1f, poolPinPos[i].z));
+		// Scala per modello cilindro
+		//model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));
+		// Scala per modello birillo
+		model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.027f, 0.027f, 0.027f));
+		normal = glm::inverseTranspose(glm::mat3(view * model));
+
+		shader.setMat4("modelMatrix", model);
+		shader.setMat3("normalMatrix", normal);
+
+		pin.Draw(shader);
+	}
+
+	/*cout << "In redraw_pins..." << endl;
+
+	for(int i = 0; i < vectorPin.size(); i++){
+		vectorPin[i]->getMotionState()->getWorldTransform(transform);
+		newPos = transform.getOrigin();
+		cout << "Pin[" << i << "] = " << newPos.getX() << " - " << newPos.getY()<< " - " << newPos.getZ() << endl;
+	}*/
+}
+
 //Imposto lo shader e renderizzo la Cubemap
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture) {
 	glDepthFunc(GL_LEQUAL);
@@ -779,15 +823,14 @@ bool check_idle_ball(btVector3 linearVelocity) {
 
 //FUNZIONE UTILIZZATA PER CARICARE IN MEMORIA I 128 CARATTERI
 void create_dictionary(FT_Face face) {
-	// Load first 128 characters of ASCII set
+	//Carico i primi 128 caratteri del codice ASCII
 	for (GLubyte c = 0; c < 128; c++) {
-		// Load character glyph
+
 		if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
 			cout << "Errore nel caricamento del Glyph!" << endl;
 			continue;
 		}
 
-		// Generate texture
 		GLuint texture;
 
 		glGenTextures(1, &texture);
@@ -797,13 +840,11 @@ void create_dictionary(FT_Face face) {
 		GL_RED,
 		GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
 
-		// Set texture options
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		// Now store character for later use
 		Character character = { texture, glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows), glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top), face->glyph->advance.x };
 		dictionary.insert(pair<GLchar, Character>(c, character));
 	}
@@ -812,7 +853,7 @@ void create_dictionary(FT_Face face) {
 //FUNZIONE DI TEXTRENDERING
 void render_text(Shader &shader, string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color) {
 	GLuint VAO, VBO;
-	// Configure VAO/VBO for texture quads
+
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glBindVertexArray(VAO);
@@ -828,7 +869,7 @@ void render_text(Shader &shader, string text, GLfloat x, GLfloat y, GLfloat scal
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(VAO);
 
-	// Iterate through all characters
+	//Itero sui caratteri del testo che voglio scrivere
 	string::const_iterator c;
 	for (c = text.begin(); c != text.end(); c++)
 	{
@@ -839,7 +880,7 @@ void render_text(Shader &shader, string text, GLfloat x, GLfloat y, GLfloat scal
 
 		GLfloat w = ch.size.x * scale;
 		GLfloat h = ch.size.y * scale;
-		// Update VBO for each character
+
 		GLfloat vertices[6][4] = {
 			{ xpos,     ypos + h,   0.0, 0.0 },
 			{ xpos,     ypos,       0.0, 1.0 },
@@ -849,17 +890,18 @@ void render_text(Shader &shader, string text, GLfloat x, GLfloat y, GLfloat scal
 			{ xpos + w, ypos,       1.0, 1.0 },
 			{ xpos + w, ypos + h,   1.0, 0.0 }
 		};
-		// Render glyph texture over quad
+		//Renderizzo il glyph c
 		glBindTexture(GL_TEXTURE_2D, ch.textureID);
-		// Update content of VBO memory
+
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // Be sure to use glBufferSubData and not glBufferData
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		// Render quad
+
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += (ch.advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+
+		//Shift di 6 bit per andare al successivo carattere
+		x += (ch.advance >> 6) * scale;
 	}
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
