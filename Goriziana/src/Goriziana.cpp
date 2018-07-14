@@ -82,7 +82,7 @@ GLfloat F0[] = { 2.0f, 0.1f };
 GLfloat m = 0.3f;
 
 //Dimensione della sfera
-glm::vec3 sphereSize = glm::vec3(0.5f, 0.5f, 0.5f);
+glm::vec3 sphereSize = glm::vec3(0.45f, 0.45f, 0.45f);
 
 //Posizione delle biglie del gioco
 glm::vec3 poolBallPos[] = {
@@ -92,11 +92,19 @@ glm::vec3 poolBallPos[] = {
 };
 
 glm::vec3 poolPinPos[] = {
-	glm::vec3(1.0f, 6.23f, 0.0f), // birillo in alto
-	glm::vec3(0.0f, 6.23f, -1.0f), // birillo a sinistra
+	glm::vec3(1.2f, 6.23f, 0.0f), // birillo in alto
+	glm::vec3(0.0f, 6.23f, -1.2f), // birillo a sinistra
 	glm::vec3(0.0f, 6.23f, 0.0f), // birillo al centro
-	glm::vec3(0.0f, 6.23f, 1.0f), // birillo a destra
-	glm::vec3(-1.0f, 6.23f, 0.0f), // birillo in basso
+	glm::vec3(0.0f, 6.23f, 1.2f), // birillo a destra
+	glm::vec3(-1.2f, 6.23f, 0.0f) // birillo in basso
+};
+
+int poolPinPoint[] = {
+	2, //punteggio birillo in alto
+	2, //punteggio birillo a sinistra
+	8, //punteggio birillo al centro
+	2, //punteggio birillo a destra
+	2  //punteggio birillo in basso
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -269,7 +277,7 @@ int main() {
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
 	// Dimensione rigibody Cylinder per modello birillo
-	glm::vec3 bodyPinSize = glm::vec3(0.07f, 0.2f, 0.07f);
+	glm::vec3 bodyPinSize = glm::vec3(0.05f, 0.18f, 0.05f);
 
 	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -390,9 +398,11 @@ int main() {
 				vectorPin[i]->getMotionState()->getWorldTransform(transform);
 				transform.getOpenGLMatrix(matrix);
 
+				//Se nella matrice di rotazione, la componente dell'asse y (seconda colonna) ha il valore della prima o della terza coordinata maggiore della seconda
+				//il birillo è stato abbattuto e quindi devo aggiungere il punteggio
 				if (abs(matrix[4]) > abs(matrix[5])){
-					cout << "Pin[" << i << "] caduto!" << endl;
-					counterPoint[player]++;
+					//cout << "Pin[" << i << "] caduto!" << endl;
+					counterPoint[player] += poolPinPoint[i];
 				}
 
 				temp.setValue(poolPinPos[i].x, poolPinPos[i].y, poolPinPos[i].z);
@@ -724,7 +734,7 @@ void draw_model_texture(Shader &shaderT, Model &table, Model &pin, vector<btRigi
 		// Scala per modello cilindro
 		//model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));
 		// Scala per modello birillo
-		model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.027f, 0.027f, 0.027f));
+		model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.023f, 0.023f, 0.023f));
 		normal = glm::inverseTranspose(glm::mat3(view * model));
 
 		shaderT.setMat4("modelMatrix", model);
