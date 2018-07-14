@@ -28,6 +28,7 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
@@ -59,7 +60,6 @@ const GLuint SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 //Camera      posx   posy  posz   upx   upy   upz   yaw   pitch
 Camera camera(-8.5f, 7.6f, -2.2f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
-//Camera camera(-8.0f, 9.0f, -2.2f, 6.0f, 1.0f, 0.0f);
 
 //Variabili utilizzate per implementare una Camera FPS
 GLfloat lastX = (float) SCR_WIDTH / 2.0f;
@@ -73,7 +73,6 @@ GLfloat lastFrame = 0.0f;
 
 //Posizione ottimale della luce del sole
 glm::vec3 lightDirs[] = { glm::vec3(-6.0f, 10.0f, -9.0f), glm::vec3(10.0f, 10.0f, 10.0f) };
-//glm::vec3 lightDirs[] = {glm::vec3(0.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f)};
 
 //Pesi della componente diffusive, speculari e ambientali per shaders
 //GLfloat Ks = 0.5f;
@@ -81,28 +80,23 @@ glm::vec3 lightDirs[] = { glm::vec3(-6.0f, 10.0f, -9.0f), glm::vec3(10.0f, 10.0f
 GLfloat Kd = 0.8f;
 GLfloat F0[] = { 2.0f, 0.1f };
 GLfloat m = 0.3f;
-//Componente di shininess per shader Blinn-Phong
-//GLfloat shininess = 25.0f;
-
-//Parametri per l'attenuazione nello shader Blinn-Phong
-//GLfloat constant = 1.0f;
-//GLfloat linear = 0.09f;
-//GLfloat quadratic = 0.032f;
 
 //Dimensione della sfera
 glm::vec3 sphereSize = glm::vec3(0.5f, 0.5f, 0.5f);
 
 //Posizione delle biglie del gioco
-glm::vec3 poolBallPos[] = { glm::vec3(-5.5f, 6.62f, -2.2f), // biglia bianca
-glm::vec3(-5.5f, 6.62f, 2.2f), // biglia gialla
-glm::vec3(5.5f, 6.62f, 0.0f) // biglia rossa
+glm::vec3 poolBallPos[] = {
+	glm::vec3(-5.5f, 6.62f, -2.2f), // biglia bianca
+	glm::vec3(-5.5f, 6.62f, 2.2f), // biglia gialla
+	glm::vec3(5.5f, 6.62f, 0.0f) // biglia rossa
 };
 
-glm::vec3 poolPinPos[] = { glm::vec3(0.70f, 6.23f, 0.0f), // birillo in alto
-glm::vec3(0.0f, 6.23f, 0.70f), // birillo a destra
-glm::vec3(-0.70f, 6.23f, 0.0f), // birillo in basso
-glm::vec3(0.00f, 6.23f, -0.70f), // birillo a sinistra
-glm::vec3(0.0f, 6.23f, 0.0f), // birillo al centro
+glm::vec3 poolPinPos[] = {
+	glm::vec3(1.0f, 6.23f, 0.0f), // birillo in alto
+	glm::vec3(0.0f, 6.23f, -1.0f), // birillo a sinistra
+	glm::vec3(0.0f, 6.23f, 0.0f), // birillo al centro
+	glm::vec3(0.0f, 6.23f, 1.0f), // birillo a destra
+	glm::vec3(-1.0f, 6.23f, 0.0f), // birillo in basso
 };
 
 glm::vec3 poolPlanePos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -118,7 +112,6 @@ GLuint load_texture(const char* path);
 GLuint load_cubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
 void draw_model_texture(Shader &shaderT, Model &table, Model &pin, vector<btRigidBody*> vectorPin);
-void redraw_pins(Shader &shader, Model &pin, vector<btRigidBody*> vectorPin);
 void draw_skybox(Shader &shaderSB, Model &box, GLuint texture);
 bool check_idle_ball(btVector3 linearVelocity);
 void create_dictionary(FT_Face face);
@@ -276,7 +269,7 @@ int main() {
 
 	//CREO IL CORPO RIGIDO DA ASSEGNARE AI BIRILLI
 	// Dimensione rigibody Cylinder per modello birillo
-	glm::vec3 bodyPinSize = glm::vec3(0.08f, 0.2f, 0.08f);
+	glm::vec3 bodyPinSize = glm::vec3(0.07f, 0.2f, 0.07f);
 
 	glm::vec3 bodyPinRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -330,6 +323,7 @@ int main() {
 
 	glm::vec3 position;
 	GLfloat playerIndexOffset = 40.0f;
+	GLfloat matrix[16];
 
 	int counterPoint[] = {0, 0};
 
@@ -369,9 +363,9 @@ int main() {
 
 		render_text(shaderText, "*", 15.0f, 670.0f - playerIndexOffset * player, 1.0f, glm::vec3(1.0f));
 		render_text(shaderText, "Giocatore 1 | ", 40.0f, 675.0f, 1.0f, glm::vec3(1.0f));
-		render_text(shaderText, to_string(counterPoint[player]), 250.0f, 675.0f, 1.0f, glm::vec3(1.0f));
+		render_text(shaderText, to_string(counterPoint[0]), 250.0f, 675.0f, 1.0f, glm::vec3(1.0f));
 		render_text(shaderText, "Giocatore 2 | ", 40.0f, 635.0f, 1.0f, glm::vec3(1.0f));
-		render_text(shaderText, to_string(counterPoint[!player]), 250.0f, 635.0f, 1.0f, glm::vec3(1.0f));
+		render_text(shaderText, to_string(counterPoint[1]), 250.0f, 635.0f, 1.0f, glm::vec3(1.0f));
 
 		model = mat4(1.0f);
 
@@ -390,27 +384,18 @@ int main() {
 
 			view = camera.MoveCamera(position);
 
-			checkShoot = false;
-
-			player = !player;
-
-			/*cout << "In Render Loop..." << endl;
-
-			for(int i = 0; i < vectorPin.size(); i++){
-				vectorPin[i]->getMotionState()->getWorldTransform(transform);
-				temp = transform.getOrigin();
-				cout << "Pin[" << i << "] = " << temp.getX() << " - " << temp.getY()<< " - " << temp.getZ() << endl;
-			}*/
-
-			//redraw_pins(shaderTexture, modelPin, vectorPin);
-
+			//Controllo i birilli caduti, per l'assegnamento dei punti, e li riposiziono
 			for(int i = 0; i < 5; i++){
-				temp.setValue(poolPinPos[i].x, poolPinPos[i].y, poolPinPos[i].z);
-				vectorPin[i]->getMotionState()->getWorldTransform(transform);
 
-				if (transform.getOrigin() != temp){
+				vectorPin[i]->getMotionState()->getWorldTransform(transform);
+				transform.getOpenGLMatrix(matrix);
+
+				if (abs(matrix[4]) > abs(matrix[5])){
+					cout << "Pin[" << i << "] caduto!" << endl;
 					counterPoint[player]++;
 				}
+
+				temp.setValue(poolPinPos[i].x, poolPinPos[i].y, poolPinPos[i].z);
 
 				transform.setIdentity();
 				transform.setOrigin(temp);
@@ -418,6 +403,10 @@ int main() {
 				vectorPin[i]->getMotionState()->setWorldTransform(transform);
 				vectorPin[i]->setWorldTransform(transform);
 			}
+
+			checkShoot = false;
+
+			player = !player;
 		}
 
 		glfwSwapBuffers(window);
@@ -743,62 +732,6 @@ void draw_model_texture(Shader &shaderT, Model &table, Model &pin, vector<btRigi
 
 		pin.Draw(shaderT);
 	}
-}
-
-void redraw_pins(Shader &shader, Model &pin, vector<btRigidBody*> vectorPin){
-	GLfloat matrix[16];
-	btTransform transform, transform1;
-	btVector3 newPos;
-
-	shader.Use();
-
-	for (GLuint i = 0; i < NR_LIGHTS; i++) {
-		string number = to_string(i);
-		shader.setVec3(("lightVectors[" + number + "]").c_str(), lightDirs[i]);
-//		shaderT.setFloat(("m[" + number + "]").c_str(), m[i]);
-//		shaderT.setFloat(("F0[" + number + "]").c_str(), F0[i]);
-	}
-
-	shader.setFloat("m", 0.4);
-	shader.setFloat("F0", 2.0);
-	shader.setFloat("Kd", 0.7);
-	shader.setFloat("repeat", 1.0f);
-
-	for (int i = 0; i < 5; i++) {
-		model = glm::mat4(1.0f);
-		normal = glm::mat3(1.0f);
-
-		newPos = btVector3(poolPinPos[i].x, poolPinPos[i].y, poolPinPos[i].z);
-
-		transform.setIdentity();
-		transform.setOrigin(newPos);
-
-		vectorPin[i]->setWorldTransform(transform);
-		vectorPin[i]->getMotionState()->setWorldTransform(transform);
-
-		transform.getOpenGLMatrix(matrix);
-
-		//model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
-		//model = glm::translate(model, glm::vec3(poolPinPos[i].x, poolPinPos[i].y -0.1f, poolPinPos[i].z));
-		// Scala per modello cilindro
-		//model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));
-		// Scala per modello birillo
-		model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.027f, 0.027f, 0.027f));
-		normal = glm::inverseTranspose(glm::mat3(view * model));
-
-		shader.setMat4("modelMatrix", model);
-		shader.setMat3("normalMatrix", normal);
-
-		pin.Draw(shader);
-	}
-
-	/*cout << "In redraw_pins..." << endl;
-
-	for(int i = 0; i < vectorPin.size(); i++){
-		vectorPin[i]->getMotionState()->getWorldTransform(transform);
-		newPos = transform.getOrigin();
-		cout << "Pin[" << i << "] = " << newPos.getX() << " - " << newPos.getY()<< " - " << newPos.getZ() << endl;
-	}*/
 }
 
 //Imposto lo shader e renderizzo la Cubemap
