@@ -72,7 +72,7 @@ public:
         } // Sphere
         else if (type == 1) {
             	cShape = new btSphereShape(size.x);
-        	} // Cylinder - Capsule
+        	} // Cylinder
         	else if (type == 2){
         			btVector3 dim = btVector3(size.x, size.y, size.z);
 
@@ -81,13 +81,10 @@ public:
         			localTransform.setOrigin(btVector3(0.0, 0.1, 0.0));
 
         			btCylinderShape* innerShape = new btCylinderShape(dim);
-        			//btCapsuleShape* innerShape = new btCapsuleShape(dim.getX(), dim.getY());
 
         			btCompoundShape* shape = new btCompoundShape();
         			shape->addChildShape(localTransform, innerShape);
         			cShape = shape;
-
-        			//cShape = new btCylinderShape(dim);
         		}
 
         this->collisionShapes.push_back(cShape);

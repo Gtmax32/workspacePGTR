@@ -74,9 +74,7 @@ GLfloat lastFrame = 0.0f;
 //Posizione ottimale della luce del sole
 glm::vec3 lightDirs[] = { glm::vec3(-6.0f, 10.0f, -9.0f), glm::vec3(10.0f, 10.0f, 10.0f) };
 
-//Pesi della componente diffusive, speculari e ambientali per shaders
-//GLfloat Ks = 0.5f;
-//GLfloat Ka = 0.2f;
+//Pesi della componente diffusive e speculari per shaders
 GLfloat Kd = 0.8f;
 GLfloat F0[] = { 2.0f, 0.1f };
 GLfloat m = 0.3f;
@@ -116,7 +114,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 //Funzioni di utility
-GLuint load_texture(const char* path);
 GLuint load_cubemap(vector<string> faces);
 void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite, btRigidBody* bodyRed, btRigidBody* bodyYellow);
 void draw_model_texture(Shader &shaderT, Model &table, Model &pin, vector<btRigidBody*> vectorPin);
@@ -139,19 +136,17 @@ vector<btRigidBody*> vectorPin;
 //Map contenente i caratteri pre-caricati per la scrittura del testo
 map<GLchar, Character> dictionary;
 
-glm::vec3 selectedBallPos(0.0f);
-
 glm::mat4 projection(1.0f);
 glm::mat4 view(1.0f);
 glm::mat4 model(1.0f);
 glm::mat3 normal(1.0f);
 
-bool debugMode = true;
+bool debugMode = false;
 
 bool checkShoot = false;
 // Variabile booleana che utilizzo per switchare tra i due giocatori.
 // false=0 primo giocatore, biglia bianca.
-// true=1 secondo giocatore, biglia gialla
+// true=1 secondo giocatore, biglia gialla.
 bool player = false;
 
 int main() {
@@ -199,7 +194,6 @@ int main() {
 
 	//SETTO LE OPZIONI DI RENDERING DI OPENGL
 	glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -323,8 +317,7 @@ int main() {
 	// imposto il delta di tempo massimo per aggiornare la simulazione fisica
 	GLfloat maxSecPerFrame = 1.0f / 60.0f;
 
-	selectedBallPos = poolBallPos[0];
-	camera.setObjectPos(selectedBallPos);
+	camera.setObjectPos(poolBallPos[0]);
 
 	btTransform transform;
 	btVector3 linearVelocity, origin, temp;
@@ -369,6 +362,7 @@ int main() {
 
 		draw_skybox(shaderSkybox, modelSkybox, textureSkybox);
 
+		//RENDERIZZO IL TESTO
 		render_text(shaderText, "*", 15.0f, 670.0f - playerIndexOffset * player, 1.0f, glm::vec3(1.0f));
 		render_text(shaderText, "Giocatore 1 | ", 40.0f, 675.0f, 1.0f, glm::vec3(1.0f));
 		render_text(shaderText, to_string(counterPoint[0]), 250.0f, 675.0f, 1.0f, glm::vec3(1.0f));
@@ -382,7 +376,6 @@ int main() {
 
 		if (check_idle_ball(linearVelocity) && checkShoot) {
 			// Non appena la biglia del giocatore si ferma, passo all'altro giocatore, spostando la camera sull'altra biglia
-
 			playersBall[!player]->getMotionState()->getWorldTransform(transform);
 			origin = transform.getOrigin();
 
@@ -512,42 +505,6 @@ void throw_ball(btRigidBody* ball) {
 }
 
 //CARICO LE TEXTURE
-//Carico un'immagine e creo texture OpengGL
-GLuint load_texture(char const * path) {
-	GLuint textureID;
-	GLint width, height, nrComponents;
-
-	glGenTextures(1, &textureID);
-
-	unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
-
-	if (data) {
-		GLenum format;
-		if (nrComponents == 1)
-			format = GL_RED;
-		else if (nrComponents == 3)
-			format = GL_RGB;
-		else if (nrComponents == 4)
-			format = GL_RGBA;
-
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		stbi_image_free(data);
-	} else {
-		cout << "Texture failed to load at path: " << path << endl;
-		stbi_image_free(data);
-	}
-
-	return textureID;
-}
-
 //Carico le immagini per formare una Cubemap
 GLuint load_cubemap(vector<string> faces) {
 	GLuint textureID;
