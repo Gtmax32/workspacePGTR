@@ -394,7 +394,6 @@ int main() {
 				//Se nella matrice di rotazione, la componente dell'asse y (seconda colonna) ha il valore della prima o della terza coordinata maggiore della seconda
 				//il birillo è stato abbattuto e quindi devo aggiungere il punteggio
 				if (abs(matrix[4]) > abs(matrix[5])){
-					//cout << "Pin[" << i << "] caduto!" << endl;
 					counterPoint[player] += poolPinPoint[i];
 				}
 
@@ -431,11 +430,11 @@ int main() {
 
 //GESTISCO GLI INPUT DA TASTIERA
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
-	// if ESC is pressed, close the application
+	//Se viene premuto ESC, esce dall'applicazione
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 
-	// if D is pressed, activate/deactivate DrawDebugger from Bullet Physics
+	//Se viene premuto D, attiva/disattiva la visualizzazione del debugger della Bullet
 	if (key == GLFW_KEY_D && action == GLFW_PRESS)
 		debugMode = !debugMode;
 }
@@ -468,7 +467,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 //GESTISCO GLI INPUT DEL MOUSE
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		//cout << "Left button pressed at " << currentFrame << endl;
 		throw_ball(playersBall[player]);
 	}
 }
@@ -495,8 +493,6 @@ void throw_ball(btRigidBody* ball) {
 
 		relPos = btVector3(1.0, 1.0, 1.0);
 
-		//cout << "Impulse: " << impulse.getX() << " - " << impulse.getY() << " - " << impulse.getZ() << endl;
-
 		ball->activate(true);
 		ball->applyImpulse(impulse, relPos);
 
@@ -521,7 +517,7 @@ GLuint load_cubemap(vector<string> faces) {
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, face);
 			stbi_image_free(face);
 		} else {
-			cout << "Cubemap texture failed to load at path: " << faces[i] << endl;
+			cout << "Errore nel caricamento del lato: " << faces[i] << endl;
 			stbi_image_free(face);
 		}
 	}
@@ -547,19 +543,6 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 
 	//RENDERIZZO LE BIGLIE DA BILIARDO
 	//INIZIO DALLA BIANCA
-
-	//COMPONENTI PER SHADER BLINN-PHONG
-//	shaderNT.setVec3("material.ambient", 0.25, 0.20725, 0.20725);
-//	shaderNT.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
-//	shaderNT.setVec3("material.specular", 0.296648, 0.296648, 0.296648);
-//
-//	shaderNT.setFloat("material.shininess", 0.088);
-//
-//	shaderNT.setFloat("Kd", Kd);
-//	shaderNT.setFloat("Ka", Ka);
-//	shaderNT.setFloat("Ks", Ks);
-
-	//COMPONENTI PER SHADER COOK-TORRANCE
 	for (GLuint i = 0; i < NR_LIGHTS; i++) {
 		string number = to_string(i);
 		shaderNT.setVec3(("lightVectors[" + number + "]").c_str(), lightDirs[i]);
@@ -599,7 +582,6 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	transform.getOpenGLMatrix(matrix);
 
 	model = glm::make_mat4(matrix) * glm::scale(model, sphereSize);
-	// se casto a mat3 una mat4, in automatico estraggo la sottomatrice 3x3 superiore sinistra
 	normal = glm::inverseTranspose(glm::mat3(view * model));
 
 	shaderNT.setMat4("modelMatrix", model);
@@ -617,7 +599,6 @@ void draw_model_notexture(Shader &shaderNT, Model &ball, btRigidBody* bodyWhite,
 	transform.getOpenGLMatrix(matrix);
 
 	model = glm::make_mat4(matrix) * glm::scale(model, sphereSize);
-	// se casto a mat3 una mat4, in automatico estraggo la sottomatrice 3x3 superiore sinistra
 	normal = glm::inverseTranspose(glm::mat3(view * model));
 
 	shaderNT.setMat4("modelMatrix", model);
@@ -633,23 +614,11 @@ void draw_model_texture(Shader &shaderT, Model &table, Model &pin, vector<btRigi
 
 	//RENDERIZZO I MODELLI CON TEXTURE
 	//INIZIO DAL TAVOLO
-
-	//COMPONENTI PER SHADER BLINN-PHONG
-//	shaderT.setVec3("material.specular", specularColor);
-//	shaderT.setFloat("material.shininess", shininess);
-//
-//	shaderT.setFloat("Kd", Kd);
-//	shaderT.setFloat("Ka", Ka);
-//	shaderT.setFloat("Ks", Ks);
-
-	//COMPONENTI PER SHADER COOK-TORRANCE
 	shaderT.Use();
 
 	for (GLuint i = 0; i < NR_LIGHTS; i++) {
 		string number = to_string(i);
 		shaderT.setVec3(("lightVectors[" + number + "]").c_str(), lightDirs[i]);
-//		shaderT.setFloat(("m[" + number + "]").c_str(), m[i]);
-//		shaderT.setFloat(("F0[" + number + "]").c_str(), F0[i]);
 	}
 
 	shaderT.setFloat("m", 0.6);
@@ -678,6 +647,7 @@ void draw_model_texture(Shader &shaderT, Model &table, Model &pin, vector<btRigi
 	shaderT.setFloat("m", 0.4);
 	shaderT.setFloat("F0", 2.0);
 	shaderT.setFloat("Kd", 0.7);
+
 	shaderT.setFloat("repeat", 1.0f);
 
 	for (int i = 0; i < 5; i++) {
@@ -688,8 +658,6 @@ void draw_model_texture(Shader &shaderT, Model &table, Model &pin, vector<btRigi
 		transform.getOpenGLMatrix(matrix);
 
 		model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
-		// Scala per modello cilindro
-		//model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));
 		// Scala per modello birillo
 		model = glm::make_mat4(matrix) * glm::scale(model, glm::vec3(0.023f, 0.023f, 0.023f));
 		normal = glm::inverseTranspose(glm::mat3(view * model));

@@ -26,7 +26,7 @@ void main(){
 	
 	//Normalizzo il vettore normale
     vec3 N = normalize(vNormal);
-    
+    	
 	for ( int i = 0; i < NR_LIGHTS; i++){
 		//Normalizzo il vettore di incidenza della directional light i
 		vec3 L = normalize(lightDirs[i].xyz);

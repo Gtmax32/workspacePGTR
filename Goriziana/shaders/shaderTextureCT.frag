@@ -38,7 +38,7 @@ void main(){
     vec3 N = normalize(vNormal);
 	
 	vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
-	
+		
 	for (int i = 0; i < NR_LIGHTS; i++){
 		//Normalizzo il vettore di incidenza della directional light i
 		vec3 L = normalize(lightDirs[i].xyz);
@@ -85,7 +85,7 @@ void main(){
 			//Calcolo colore finale per la directional light i e lo sommo al colore finale
 			color += surfaceColor * lambertian * (Kd + specular * (1.0 - Kd));
 		}
-	}   
-
+	}
+	
     colorFrag = color;
 }
