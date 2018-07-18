@@ -1,4 +1,0 @@
-shaderNoTexture.vert <-> 13_phong.vert
-shaderNoTexture.frag <-> 13b_blinnphong.frag
-shaderTexture.vert   <-> 16_phong_tex.vert
-shaderTexture.vert   <-> 16b_blinnphong_tex.frag
